@@ -29,3 +29,11 @@ case_0
         expect = 'Area: 0.00(\d*)\r\n', 1
         expect = EOF, 1
     return = 0
+
+case_negative
+    run = ./circle
+    script
+        expect = 'Enter radius(.*?):\s+', 1
+        send = -1
+        expect = EOF, 1
+    return = 1
