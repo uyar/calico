@@ -50,7 +50,7 @@ def run_spec(spec):
 
     report = OrderedDict()
     for test_name, test_data in spec:
-        _logger.info('handling test: %s', test_name)
+        _logger.info('test: %s', test_name)
         report[test_name] = {}
         test = OrderedDict(test_data)
 
@@ -70,7 +70,7 @@ def run_spec(spec):
                 if summary.exit_status != expected_status:
                     report[test_name]['error'] = 'Incorrect exit status.'
         else:
-            _logger.info('running command: %s', command)
+            _logger.debug('running command: %s', command)
             process = pexpect.spawn(command)
             process.setecho(False)
 
@@ -87,12 +87,14 @@ def run_spec(spec):
                     except pexpect.TIMEOUT:
                         _logger.debug('received: %s', process.before)
                         process.close(force=True)
+                        _logger.info('FAILED: Time out')
                         report[test_name]['errors'] = 'Time out.'
                         break
                     except pexpect.EOF:
                         _logger.debug('received: %s EOF', process.before)
                         process.close(force=True)
-                        report[test_name]['errors'] = 'Expected input not received.'
+                        _logger.info('FAILED: Expected output not received.')
+                        report[test_name]['errors'] = 'Expected output not received.'
                         break
                 elif step_name == 'send':
                     assert len(step_data) == 1
@@ -106,6 +108,8 @@ def run_spec(spec):
             if exit_status != return_code:
                 report[test_name]['errors'] = 'Incorrect return code.'
 
+        if not 'error' in report[test_name]:
+            _logger.info('PASSED')
         blocker = test.get('blocker', ['no'])[0] == 'yes'
         if blocker and ('error' in report[test_name]):
             break
