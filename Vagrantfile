@@ -20,6 +20,11 @@ Vagrant.configure("2") do |config|
     # ensure we have the packages we need
     config.vm.provision :puppet do |puppet|
         puppet.manifests_path = "vagrant"
+        puppet.manifest_file  = "base.pp"
+    end
+
+    config.vm.provision :puppet do |puppet|
+        puppet.manifests_path = "vagrant"
         puppet.manifest_file  = "pace.pp"
     end
 end
