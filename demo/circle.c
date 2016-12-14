@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
 
 int main(int argc, char* argv[]) {
     float radius, area;
 
-    printf("Enter radius of circle: ");
+    //sleep(3);
+    //return 0;
+    printf("Enter radiu of circle: ");
     scanf("%f", &radius);
 
     if (radius < 0) {

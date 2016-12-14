@@ -84,17 +84,11 @@ def run_spec(spec):
                         _logger.debug('  expecting (timeout: %2ss): %s', timeout, pattern)
                         process.expect(pattern, timeout=timeout)
                         _logger.debug('  received                : %s', process.after)
-                    except pexpect.TIMEOUT:
+                    except (pexpect.TIMEOUT, pexpect.EOF):
                         _logger.debug('received: %s', process.before)
                         process.close(force=True)
-                        _logger.info('FAILED: Time out')
-                        report[test_name]['errors'] = 'Time out.'
-                        break
-                    except pexpect.EOF:
-                        _logger.debug('received: %s EOF', process.before)
-                        process.close(force=True)
                         _logger.info('FAILED: Expected output not received.')
-                        report[test_name]['errors'] = 'Expected output not received.'
+                        report[test_name]['error'] = 'Expected output not received.'
                         break
                 elif step_name == 'send':
                     assert len(step_data) == 1
@@ -106,10 +100,11 @@ def run_spec(spec):
 
             return_code = int(test.get('return', ['0'])[0])
             if exit_status != return_code:
-                report[test_name]['errors'] = 'Incorrect return code.'
+                report[test_name]['error'] = 'Incorrect exit status.'
 
         if not 'error' in report[test_name]:
             _logger.info('PASSED')
+
         blocker = test.get('blocker', ['no'])[0] == 'yes'
         if blocker and ('error' in report[test_name]):
             break
