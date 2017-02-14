@@ -66,12 +66,19 @@ def execute_command(command, timeout=None):
 def run_spec(spec):
     # XXX: This function assumes that the spec is valid.
     report = OrderedDict()
-    # max_len = max([len(t[0]) for t in spec])
+    
+    tests = OrderedDict([(test_name, OrderedDict(test_data))
+                         for test_name, test_data in spec])
+
+    points = [t.get('points') for _, t in tests.items()]
+    total_points = sum([int(p[0]) for p in points if p is not None])
+
+    # max_len = max([len(t) for t in tests])
     max_len = 40
-    for test_name, test_data in spec:
+
+    for test_name, test in tests.items():
         print(test_name, end='')
         report[test_name] = {}
-        test = OrderedDict(test_data)
         
         command = test['run'][0]
         _logger.debug('running command: %s', command)
@@ -121,12 +128,21 @@ def run_spec(spec):
                 report[test_name]['error'] = 'Incorrect exit status.'
 
         print(' ' + '.' * (max_len - len(test_name) + 1) + ' ', end='')
-        print('PASSED') if 'error' not in report[test_name] else 'FAILED'
+        points = test.get('points')
+        if points is None:  
+            print('PASSED') if 'error' not in report[test_name] else 'FAILED'
+            report[test_name]['points'] = 0
+        else:
+            p = int(points[0])
+            print('%2d/%2d' % (p, p) if 'error' not in report[test_name] else '%2d/%2d' % (0, p))
+            report[test_name]['points'] = p
 
         blocker = test.get('blocker', ['no'])[0] == 'yes'
         if blocker and ('error' in report[test_name]):
             break
 
+    report['total'] = sum([t['points'] for _, t in report.items()])
+    report['total_points'] = total_points
     return report
 
 
@@ -161,7 +177,7 @@ def main():
             print('test: %s, error: %s' % e.args[0])
     else:
         report = run_spec(spec)
-        print(report)
+        print('%3d/%3d' % (report['total'], report['total_points']))
 
 
 if __name__ == '__main__':

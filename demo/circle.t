@@ -3,16 +3,19 @@ init
     blocker = yes
 
 compile
+    points = 0
     run = gcc -c circle.c -o circle.o
     timeout = 2
     blocker = yes
 
 link
+    points = 0
     run = gcc circle.o -o circle
     timeout = 2
     blocker = yes
 
 case_1
+    points = 10
     run = ./circle
     script
         expect = 'Enter radius(.*?):\s+', 1
@@ -22,6 +25,7 @@ case_1
     return = 0
 
 case_0
+    points = 20
     run = ./circle
     script
         expect = 'Enter radius(.*?):\s+', 1
@@ -31,6 +35,7 @@ case_0
     return = 0
 
 case_negative
+    points = 30
     run = ./circle
     script
         expect = 'Enter radius(.*?):\s+', 1
