@@ -12,7 +12,6 @@ syntax: glob
 _build/
 dist/
 
-demo/*.o
-demo/circle
+demo
 
 .idea/

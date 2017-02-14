@@ -116,6 +116,8 @@ def run_spec(spec):
 def main():
     parser = ArgumentParser()
     parser.add_argument('spec', help='test specifications file')
+    parser.add_argument('-d', '--directory',
+                        help='change to directory before doing anything')
     parser.add_argument('--validate', action='store_true',
                         help='validate only, no run')
     parser.add_argument('--quiet', action='store_true',
@@ -132,7 +134,12 @@ def main():
         log_level = logging.INFO
     logging.basicConfig(level=log_level, format='%(message)s')
 
-    with open(arguments.spec, encoding=ENCODING) as f:
+    spec_filename = os.path.abspath(arguments.spec)
+
+    if arguments.directory is not None:
+        os.chdir(arguments.directory)
+
+    with open(spec_filename, encoding=ENCODING) as f:
         spec = rsonlite.loads(f.read())
 
     if arguments.validate:

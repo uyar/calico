@@ -5,9 +5,7 @@
 int main(int argc, char* argv[]) {
     float radius, area;
 
-    //sleep(3);
-    //return 0;
-    printf("Enter radiu of circle: ");
+    printf("Enter radius of circle: ");
     scanf("%f", &radius);
 
     if (radius < 0) {
