@@ -63,7 +63,7 @@ def execute_command(command, timeout=None):
     return ExecutionSummary(timed_out, process.before, process.exitstatus)
 
 
-def run_spec(spec):
+def run_spec(spec, quiet=False):
     # XXX: This function assumes that the spec is valid.
     report = OrderedDict()
     
@@ -77,7 +77,8 @@ def run_spec(spec):
     max_len = 40
 
     for test_name, test in tests.items():
-        print(test_name, end='')
+        if not quiet:
+            print(test_name, end='')
         report[test_name] = {}
         
         command = test['run'][0]
@@ -127,15 +128,18 @@ def run_spec(spec):
             if exit_status != return_code:
                 report[test_name]['error'] = 'Incorrect exit status.'
 
-        print(' ' + '.' * (max_len - len(test_name) + 1) + ' ', end='')
+        if not quiet:
+            print(' ' + '.' * (max_len - len(test_name) + 1) + ' ', end='')
         points = test.get('points')
         if points is None:  
-            print('PASSED') if 'error' not in report[test_name] else 'FAILED'
+            if not quiet:
+                print('PASSED') if 'error' not in report[test_name] else 'FAILED'
             report[test_name]['points'] = 0
         else:
             p = int(points[0])
-            print('%2d/%2d' % (p, p) if 'error' not in report[test_name] else '%2d/%2d' % (0, p))
             report[test_name]['points'] = p
+            if not quiet:
+                print('%2d/%2d' % (p, p) if 'error' not in report[test_name] else '%2d/%2d' % (0, p))
 
         blocker = test.get('blocker', ['no'])[0] == 'yes'
         if blocker and ('error' in report[test_name]):
@@ -176,7 +180,7 @@ def main():
         except AssertionError as e:
             print('test: %s, error: %s' % e.args[0])
     else:
-        report = run_spec(spec)
+        report = run_spec(spec, quiet=arguments.quiet)
         print('%3d/%3d' % (report['total'], report['total_points']))
 
 
