@@ -159,17 +159,33 @@ def main():
                         help='validate only, no run')
     parser.add_argument('--quiet', action='store_true',
                         help='disable most messages')
+    parser.add_argument('--log', action='store_true',
+                        help='create a log file')
     parser.add_argument('--debug', action='store_true',
                         help='enable debugging messages')
     arguments = parser.parse_args()
-
-    log_level = logging.DEBUG if arguments.debug else logging.INFO
-    logging.basicConfig(level=log_level, format='%(message)s')
 
     spec_filename = os.path.abspath(arguments.spec)
 
     if arguments.directory is not None:
         os.chdir(arguments.directory)
+
+    _logger.setLevel(logging.DEBUG if arguments.debug else logging.INFO)
+
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    _logger.addHandler(handler)
+
+    if arguments.debug:
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.DEBUG)
+        _logger.addHandler(handler)
+
+    if arguments.log:
+        _logger.setLevel(logging.DEBUG)
+        handler = logging.FileHandler('log.txt')
+        handler.setLevel(logging.DEBUG)
+        _logger.addHandler(handler)
 
     with open(spec_filename, encoding=ENCODING) as f:
         spec = rsonlite.loads(f.read())
@@ -181,7 +197,7 @@ def main():
             print('test: %s, error: %s' % e.args[0])
     else:
         report = run_spec(spec, quiet=arguments.quiet)
-        print('%3d/%3d' % (report['total'], report['total_points']))
+        print('Grade: %3d/%3d' % (report['total'], report['total_points']))
 
 
 if __name__ == '__main__':
