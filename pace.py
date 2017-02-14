@@ -40,6 +40,10 @@ def validate_spec(spec):
         if blocker is not None:
             assert len(blocker) == 1, (test_name, 'multiple blocker settings')
             assert blocker[0] in ('yes', 'no'), (test_name, 'incorrect blocker value')
+        script = test.get('script')
+        for step_name, step_data in script:
+            if step_name in ('expect', 'send'):
+                assert len(step_data) == 1, (test_name, 'multiple step data')
 
 
 ExecutionSummary = namedtuple('ExecutionSummary',
@@ -49,7 +53,6 @@ ExecutionSummary = namedtuple('ExecutionSummary',
 def execute_command(command, timeout=None):
     os.environ['TERM'] = 'dumb'
     try:
-        _logger.info('running command: %s', command)
         process = pexpect.spawn(command)
         process.expect(pexpect.EOF, timeout=timeout)
         timed_out = False
@@ -62,14 +65,17 @@ def execute_command(command, timeout=None):
 
 def run_spec(spec):
     # XXX: This function assumes that the spec is valid.
-
     report = OrderedDict()
+    # max_len = max([len(t[0]) for t in spec])
+    max_len = 40
     for test_name, test_data in spec:
-        _logger.info('test: %s', test_name)
+        print(test_name, end='')
         report[test_name] = {}
         test = OrderedDict(test_data)
-
+        
         command = test['run'][0]
+        _logger.debug('running command: %s', command)
+
         script = test.get('script')
         if script is None:
             # if there is no script, assume that the command is not interactive
@@ -85,13 +91,11 @@ def run_spec(spec):
                 if summary.exit_status != expected_status:
                     report[test_name]['error'] = 'Incorrect exit status.'
         else:
-            _logger.debug('running command: %s', command)
             process = pexpect.spawn(command)
             process.setecho(False)
 
             for step_name, step_data in script:
                 if step_name == 'expect':
-                    assert len(step_data) == 1
                     p, t = step_data[0].split(',')
                     pattern = pexpect.EOF if p == 'EOF' else p.encode(ENCODING)[1:-1]
                     timeout = int(t)
@@ -102,11 +106,10 @@ def run_spec(spec):
                     except (pexpect.TIMEOUT, pexpect.EOF):
                         _logger.debug('received: %s', process.before)
                         process.close(force=True)
-                        _logger.info('FAILED: Expected output not received.')
+                        _logger.debug('FAILED: Expected output not received.')
                         report[test_name]['error'] = 'Expected output not received.'
                         break
                 elif step_name == 'send':
-                    assert len(step_data) == 1
                     raw_input = step_data[0]
                     _logger.debug('  sending: %s', raw_input)
                     process.sendline(raw_input)
@@ -117,15 +120,14 @@ def run_spec(spec):
             if exit_status != return_code:
                 report[test_name]['error'] = 'Incorrect exit status.'
 
-        if not 'error' in report[test_name]:
-            _logger.info('PASSED')
+        print(' ' + '.' * (max_len - len(test_name) + 1) + ' ', end='')
+        print('PASSED') if 'error' not in report[test_name] else 'FAILED'
 
         blocker = test.get('blocker', ['no'])[0] == 'yes'
         if blocker and ('error' in report[test_name]):
             break
 
     return report
-
 
 
 def main():
@@ -141,12 +143,7 @@ def main():
                         help='enable debugging messages')
     arguments = parser.parse_args()
 
-    if arguments.quiet:
-        log_level = logging.CRITICAL
-    elif arguments.debug:
-        log_level = logging.DEBUG
-    else:
-        log_level = logging.INFO
+    log_level = logging.DEBUG if arguments.debug else logging.INFO
     logging.basicConfig(level=log_level, format='%(message)s')
 
     spec_filename = os.path.abspath(arguments.spec)
