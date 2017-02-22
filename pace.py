@@ -137,9 +137,9 @@ def run_spec(spec, quiet=False):
             report[test_name]['points'] = 0
         else:
             p = int(points[0])
-            report[test_name]['points'] = p
+            report[test_name]['points'] = p if 'error' not in report[test_name] else 0
             if not quiet:
-                print('%2d/%2d' % (p, p) if 'error' not in report[test_name] else '%2d/%2d' % (0, p))
+                print('%2d/%2d' % (report[test_name]['points'], p))
 
         blocker = test.get('blocker', ['no'])[0] == 'yes'
         if blocker and ('error' in report[test_name]):
