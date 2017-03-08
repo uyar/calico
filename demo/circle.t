@@ -16,6 +16,7 @@ link
 
 case_1
     points = 10
+    chroot = /tmp/x
     run = ./circle
     script
         expect = 'Enter radius(.*?):\s+', 1

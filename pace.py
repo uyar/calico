@@ -20,6 +20,7 @@ import logging
 import os
 import pexpect
 import rsonlite
+import shutil
 
 
 ENCODING = 'utf-8'
@@ -84,6 +85,18 @@ def run_spec(spec, quiet=False):
         command = test['run'][0]
         _logger.debug('running command: %s', command)
 
+        chroot = test.get('chroot')
+        if chroot is not None:
+            root = chroot[0]
+            _logger.debug('changing root: %s', root)
+            if os.path.exists(root):
+                shutil.rmtree(root)
+            shutil.copytree('.', root)
+            command = 'fakechroot chroot %(root)s %(command)s' % {
+                'root': root,
+                'command': command
+            }
+
         script = test.get('script')
         if script is None:
             # if there is no script, assume that the command is not interactive
@@ -127,6 +140,11 @@ def run_spec(spec, quiet=False):
             return_code = int(test.get('return', ['0'])[0])
             if exit_status != return_code:
                 report[test_name]['error'] = 'Incorrect exit status.'
+
+        if chroot is not None:
+            root = chroot[0]
+            if os.path.exists(root):
+                shutil.rmtree(root)
 
         if not quiet:
             print(' ' + '.' * (max_len - len(test_name) + 1) + ' ', end='')
