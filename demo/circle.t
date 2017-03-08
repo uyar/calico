@@ -43,3 +43,6 @@ case_negative
         send = -1
         expect = EOF, 1
     return = 1
+
+cleanup
+    run = rm -f circle.o circle
