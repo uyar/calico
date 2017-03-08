@@ -14,7 +14,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 from argparse import ArgumentParser
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict
 
 import logging
 import os
@@ -47,10 +47,6 @@ def validate_spec(spec):
                 assert len(step_data) == 1, (test_name, 'multiple step data')
 
 
-ExecutionSummary = namedtuple('ExecutionSummary',
-                              ['timed_out', 'outputs', 'exit_status'])
-
-
 def execute_command(command, timeout=None):
     os.environ['TERM'] = 'dumb'
     try:
@@ -61,7 +57,7 @@ def execute_command(command, timeout=None):
         timed_out = True
     finally:
         process.close(force=True)
-    return ExecutionSummary(timed_out, process.before, process.exitstatus)
+    return timed_out, process.before, process.exitstatus
 
 
 def run_spec(spec, quiet=False):
@@ -103,13 +99,13 @@ def run_spec(spec, quiet=False):
             # run it and wait for it to finish
             t = test.get('timeout')
             timeout = int(t[0]) if t is not None else None
-            summary = execute_command(command, timeout=timeout)
-            report[test_name]['outputs'] = summary.outputs
-            if summary.timed_out:
+            timed_out, outputs, exit_status = execute_command(command, timeout=timeout)
+            report[test_name]['outputs'] = outputs
+            if timed_out:
                 report[test_name]['error'] = 'Time out.'
             else:
                 expected_status = int(test.get('return', ['0'])[0])
-                if summary.exit_status != expected_status:
+                if exit_status != expected_status:
                     report[test_name]['error'] = 'Incorrect exit status.'
         else:
             process = pexpect.spawn(command)
