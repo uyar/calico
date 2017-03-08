@@ -31,16 +31,25 @@ _logger = logging.getLogger(__name__)
 def validate_spec(spec):
     for test_name, test_data in spec:
         test = OrderedDict(test_data)
+
         assert 'run' in test, (test_name, 'no run command')
         assert len(test['run']) == 1, (test_name, 'multiple run commands')
+
+        points = test.get('points')
+        if points is not None:
+            assert len(points) == 1, (test_name, 'multiple points values')
+            assert points[0].isdigit(), (test_name, 'non-numeric points value')
+
         timeout = test.get('timeout')
         if timeout is not None:
             assert len(timeout) == 1, (test_name, 'multiple timeout values')
             assert timeout[0].isdigit(), (test_name, 'non-numeric timeout value')
+
         blocker = test.get('blocker')
         if blocker is not None:
             assert len(blocker) == 1, (test_name, 'multiple blocker settings')
             assert blocker[0] in ('yes', 'no'), (test_name, 'incorrect blocker value')
+
         script = test.get('script')
         for step_name, step_data in script:
             if step_name in ('expect', 'send'):
