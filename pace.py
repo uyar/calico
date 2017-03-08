@@ -66,7 +66,7 @@ def execute_command(command, timeout=None):
 def run_spec(spec, quiet=False):
     # XXX: This function assumes that the spec is valid.
     report = OrderedDict()
-    
+
     tests = OrderedDict([(test_name, OrderedDict(test_data))
                          for test_name, test_data in spec])
 
@@ -80,7 +80,7 @@ def run_spec(spec, quiet=False):
         if not quiet:
             print(test_name, end='')
         report[test_name] = {}
-        
+
         command = test['run'][0]
         _logger.debug('running command: %s', command)
 
@@ -131,7 +131,7 @@ def run_spec(spec, quiet=False):
         if not quiet:
             print(' ' + '.' * (max_len - len(test_name) + 1) + ' ', end='')
         points = test.get('points')
-        if points is None:  
+        if points is None:
             if not quiet:
                 print('PASSED') if 'error' not in report[test_name] else 'FAILED'
             report[test_name]['points'] = 0
