@@ -51,8 +51,9 @@ def validate_spec(spec):
             assert blocker[0] in ('yes', 'no'), (test_name, 'incorrect blocker value')
 
         script = test.get('script')
-        for step_name, step_data in script:
-            if step_name in ('expect', 'send'):
+        if script is not None:
+            for step_name, step_data in script:
+                assert step_name in ('expect', 'send'), (test_name, 'invalid action type')
                 assert len(step_data) == 1, (test_name, 'multiple step data')
 
         returns = test.get('return')
