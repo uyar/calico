@@ -55,6 +55,11 @@ def validate_spec(spec):
             if step_name in ('expect', 'send'):
                 assert len(step_data) == 1, (test_name, 'multiple step data')
 
+        returns = test.get('return')
+        if returns is not None:
+            assert len(returns) == 1, (test_name, 'multiple returns values')
+            assert returns[0].isdigit(), (test_name, 'non-numeric returns value')
+
 
 def execute_command(command, timeout=None):
     os.environ['TERM'] = 'dumb'
