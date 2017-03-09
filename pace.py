@@ -65,7 +65,7 @@ def validate_spec(spec):
 def execute_command(command, timeout=None):
     """Run the command and return the results.
 
-    :sig: (str, Optional[int]) -> Tuple[int, str, Iterable[str]]
+    :sig: (str, Optional[int]) -> Tuple[int, str, List[str]]
     :param command: Command to run.
     :param timeout: How long to wait for command to finish, in seconds.
     :return: Exit status, outputs, and errors.
@@ -84,7 +84,7 @@ def execute_command(command, timeout=None):
 def run_script(command, script):
     """Run a command and check whether it follows a script.
 
-    :sig: (str, Iterable[str]) -> Tuple[int, Iterable[str]]
+    :sig: (str, List[str]) -> Tuple[int, List[str]]
     :param command: Command to run.
     :param script: Script to follow.
     :return: Exit status and errors.
@@ -116,6 +116,55 @@ def run_script(command, script):
     return process.exitstatus, errors
 
 
+def run_test(test):
+    """Run a test and produce a report.
+
+    :sig: (Mapping[str, List[str]]) -> Mapping[str, Union[str, List[str]]]
+    :param test: Test to run.
+    :return: Result report of the test.
+    """
+    report = {}
+    report['errors'] = []
+
+    command, *rhs = test['run'][0].split('# timeout:')
+    timeout = int(rhs[0].strip()) if len(rhs) > 0 else None
+    _logger.debug('running command: %s', command)
+
+    chroot = test.get('chroot')
+    if chroot is not None:
+        root = chroot[0]
+        _logger.debug('changing root: %s', root)
+        if os.path.exists(root):
+            shutil.rmtree(root)
+        shutil.copytree('.', root)
+        command = 'fakechroot chroot %(root)s %(command)s' % {
+            'root': root,
+            'command': command
+        }
+
+    script = test.get('script')
+    if script is None:
+        # if there is no script, assume that the command is not interactive
+        # run it and wait for it to finish
+        exit_status, outputs, errors = execute_command(command, timeout=timeout)
+        report['outputs'] = outputs
+    else:
+        exit_status, errors = run_script(command, script)
+
+    report['errors'].extend(errors)
+
+    expected_status = int(test.get('return', ['0'])[0])
+    if exit_status != expected_status:
+        report['errors'].append('Incorrect exit status.')
+
+    if chroot is not None:
+        root = chroot[0]
+        if os.path.exists(root):
+            shutil.rmtree(root)
+
+    return report
+
+
 def run_spec(spec, quiet=False):
     # XXX: This function assumes that the spec is valid.
     report = OrderedDict()
@@ -134,44 +183,8 @@ def run_spec(spec, quiet=False):
     for test_name, test in tests.items():
         if not quiet:
             print(test_name, end='')
-        report[test_name] = {}
-        report[test_name]['errors'] = []
 
-        command, *rhs = test['run'][0].split('# timeout:')
-        timeout = int(rhs[0].strip()) if len(rhs) > 0 else None
-        _logger.debug('running command: %s', command)
-
-        chroot = test.get('chroot')
-        if chroot is not None:
-            root = chroot[0]
-            _logger.debug('changing root: %s', root)
-            if os.path.exists(root):
-                shutil.rmtree(root)
-            shutil.copytree('.', root)
-            command = 'fakechroot chroot %(root)s %(command)s' % {
-                'root': root,
-                'command': command
-            }
-
-        script = test.get('script')
-        if script is None:
-            # if there is no script, assume that the command is not interactive
-            # run it and wait for it to finish
-            exit_status, outputs, errors = execute_command(command, timeout=timeout)
-            report[test_name]['outputs'] = outputs
-        else:
-            exit_status, errors = run_script(command, script)
-
-        report[test_name]['errors'].extend(errors)
-
-        expected_status = int(test.get('return', ['0'])[0])
-        if exit_status != expected_status:
-            report[test_name]['errors'].append('Incorrect exit status.')
-
-        if chroot is not None:
-            root = chroot[0]
-            if os.path.exists(root):
-                shutil.rmtree(root)
+        report[test_name] = run_test(test)
 
         if not quiet:
             print(' ' + '.' * (max_len - len(test_name) + 1) + ' ', end='')
