@@ -64,8 +64,8 @@ def validate_spec(spec):
 
 def execute_command(command, timeout=None):
     os.environ['TERM'] = 'dumb'
+    process = pexpect.spawn(command)
     try:
-        process = pexpect.spawn(command)
         process.expect(pexpect.EOF, timeout=timeout)
         timed_out = False
     except pexpect.TIMEOUT:
@@ -128,7 +128,7 @@ def run_spec(spec, quiet=False):
 
             for step_name, step_data in script:
                 if step_name == 'expect':
-                    p, t = step_data[0].split(',')
+                    p, t = step_data[0].split(':timeout:')
                     pattern = pexpect.EOF if p == 'EOF' else p.encode(ENCODING)[1:-1]
                     timeout = int(t)
                     try:
