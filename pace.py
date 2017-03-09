@@ -63,6 +63,13 @@ def validate_spec(spec):
 
 
 def execute_command(command, timeout=None):
+    """Run the command and return the results.
+
+    :sig: (str, Optional[int]) -> Tuple[str, int, bool]
+    :param command: Command to run.
+    :param timeout: How long to wait for command to finish, in seconds.
+    :return: Outputs, exit status, and whether the command has timed out or not.
+    """
     process = pexpect.spawn(command)
     try:
         process.expect(pexpect.EOF, timeout=timeout)
@@ -71,7 +78,7 @@ def execute_command(command, timeout=None):
         timed_out = True
     finally:
         process.close(force=True)
-    return timed_out, process.before, process.exitstatus
+    return process.before, process.exitstatus, timed_out
 
 
 def run_spec(spec, quiet=False):
@@ -115,7 +122,7 @@ def run_spec(spec, quiet=False):
             # run it and wait for it to finish
             t = test.get('timeout')
             timeout = int(t[0]) if t is not None else None
-            timed_out, outputs, exit_status = execute_command(command, timeout=timeout)
+            outputs, exit_status, timed_out = execute_command(command, timeout=timeout)
             report[test_name]['outputs'] = outputs
             if timed_out:
                 report[test_name]['error'] = 'Time out.'
