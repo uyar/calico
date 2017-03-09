@@ -81,6 +81,33 @@ def execute_command(command, timeout=None):
     return process.before, process.exitstatus, timed_out
 
 
+def run_script(command, script, report, test_name):
+    process = pexpect.spawn(command)
+    process.setecho(False)
+
+    for step_name, step_data in script:
+        if step_name == 'expect':
+            p, *rhs = [s.strip() for s in step_data[0].split('# timeout:')]
+            pattern = pexpect.EOF if p == 'EOF' else p.encode(ENCODING)[1:-1]
+            timeout = int(rhs[0].strip()) if len(rhs) > 0 else None
+            try:
+                _logger.debug('  expecting (timeout: %2ss): %s', timeout, pattern)
+                process.expect(pattern, timeout=timeout)
+                _logger.debug('  received                : %s', process.after)
+            except (pexpect.TIMEOUT, pexpect.EOF):
+                _logger.debug('received: %s', process.before)
+                process.close(force=True)
+                _logger.debug('FAILED: Expected output not received.')
+                report[test_name]['error'] = 'Expected output not received.'
+                break
+        elif step_name == 'send':
+            raw_input = step_data[0].strip()[1:-1]
+            _logger.debug('  sending: %s', raw_input)
+            process.sendline(raw_input)
+    process.close()
+    return process.exitstatus
+
+
 def run_spec(spec, quiet=False):
     # XXX: This function assumes that the spec is valid.
     report = OrderedDict()
@@ -130,33 +157,9 @@ def run_spec(spec, quiet=False):
                 if exit_status != expected_status:
                     report[test_name]['error'] = 'Incorrect exit status.'
         else:
-            process = pexpect.spawn(command)
-            process.setecho(False)
-
-            for step_name, step_data in script:
-                if step_name == 'expect':
-                    p, *rhs = [s.strip() for s in step_data[0].split('# timeout:')]
-                    pattern = pexpect.EOF if p == 'EOF' else p.encode(ENCODING)[1:-1]
-                    timeout = int(rhs[0].strip()) if len(rhs) > 0 else None
-                    try:
-                        _logger.debug('  expecting (timeout: %2ss): %s', timeout, pattern)
-                        process.expect(pattern, timeout=timeout)
-                        _logger.debug('  received                : %s', process.after)
-                    except (pexpect.TIMEOUT, pexpect.EOF):
-                        _logger.debug('received: %s', process.before)
-                        process.close(force=True)
-                        _logger.debug('FAILED: Expected output not received.')
-                        report[test_name]['error'] = 'Expected output not received.'
-                        break
-                elif step_name == 'send':
-                    raw_input = step_data[0].strip()[1:-1]
-                    _logger.debug('  sending: %s', raw_input)
-                    process.sendline(raw_input)
-            process.close()
-            exit_status = process.exitstatus
-
-            return_code = int(test.get('return', ['0'])[0])
-            if exit_status != return_code:
+            exit_status = run_script(command, script, report, test_name)
+            expected_status = int(test.get('return', ['0'])[0])
+            if exit_status != expected_status:
                 report[test_name]['error'] = 'Incorrect exit status.'
 
         if chroot is not None:
