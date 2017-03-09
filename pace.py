@@ -81,14 +81,21 @@ def execute_command(command, timeout=None):
     return process.before, process.exitstatus, timed_out
 
 
-def run_script(command, script, report, test_name):
+def run_script(command, script):
+    """Run a command and check whether it follows a script.
+
+    :sig: (str, Iterable[str]) -> Tuple[int, Iterable[str]]
+    :param command: Command to run.
+    :param script: Script to follow.
+    :return: Exit status and errors.
+    """
     process = pexpect.spawn(command)
     process.setecho(False)
-
+    errors = []
     for step_name, step_data in script:
         if step_name == 'expect':
-            p, *rhs = [s.strip() for s in step_data[0].split('# timeout:')]
-            pattern = pexpect.EOF if p == 'EOF' else p.encode(ENCODING)[1:-1]
+            lhs, *rhs = [s.strip() for s in step_data[0].split('# timeout:')]
+            pattern = pexpect.EOF if lhs == 'EOF' else lhs[1:-1]    # remove the quotes
             timeout = int(rhs[0].strip()) if len(rhs) > 0 else None
             try:
                 _logger.debug('  expecting (timeout: %2ss): %s', timeout, pattern)
@@ -98,14 +105,14 @@ def run_script(command, script, report, test_name):
                 _logger.debug('received: %s', process.before)
                 process.close(force=True)
                 _logger.debug('FAILED: Expected output not received.')
-                report[test_name]['error'] = 'Expected output not received.'
+                errors.append('Expected output not received.')
                 break
         elif step_name == 'send':
-            raw_input = step_data[0].strip()[1:-1]
-            _logger.debug('  sending: %s', raw_input)
-            process.sendline(raw_input)
-    process.close()
-    return process.exitstatus
+            user_input = step_data[0].strip()[1:-1]
+            _logger.debug('  sending: %s', user_input)
+            process.sendline(user_input)
+    process.close(force=True)
+    return process.exitstatus, errors
 
 
 def run_spec(spec, quiet=False):
@@ -127,6 +134,7 @@ def run_spec(spec, quiet=False):
         if not quiet:
             print(test_name, end='')
         report[test_name] = {}
+        report[test_name]['errors'] = []
 
         command, *rhs = test['run'][0].split('# timeout:')
         timeout = int(rhs[0].strip()) if len(rhs) > 0 else None
@@ -151,16 +159,17 @@ def run_spec(spec, quiet=False):
             outputs, exit_status, timed_out = execute_command(command, timeout=timeout)
             report[test_name]['outputs'] = outputs
             if timed_out:
-                report[test_name]['error'] = 'Time out.'
+                report[test_name]['errors'].append('Time out.')
             else:
                 expected_status = int(test.get('return', ['0'])[0])
                 if exit_status != expected_status:
-                    report[test_name]['error'] = 'Incorrect exit status.'
+                    report[test_name]['errors'].append('Incorrect exit status.')
         else:
-            exit_status = run_script(command, script, report, test_name)
+            exit_status, errors = run_script(command, script)
+            report[test_name]['errors'].extend(errors)
             expected_status = int(test.get('return', ['0'])[0])
             if exit_status != expected_status:
-                report[test_name]['error'] = 'Incorrect exit status.'
+                report[test_name]['errors'].append('Incorrect exit status.')
 
         if chroot is not None:
             root = chroot[0]
@@ -172,16 +181,16 @@ def run_spec(spec, quiet=False):
         points = test.get('points')
         if points is None:
             if not quiet:
-                print('PASSED') if 'error' not in report[test_name] else 'FAILED'
+                print('PASSED' if len(report[test_name]['errors']) == 0 else 'FAILED')
             report[test_name]['points'] = 0
         else:
             p = int(points[0])
-            report[test_name]['points'] = p if 'error' not in report[test_name] else 0
+            report[test_name]['points'] = p if len(report[test_name]['errors']) == 0 else 0
             if not quiet:
                 print('%2d/%2d' % (report[test_name]['points'], p))
 
         blocker = test.get('blocker', ['no'])[0] == 'yes'
-        if blocker and ('error' in report[test_name]):
+        if blocker and (len(report[test_name]['errors']) > 0):
             break
 
     report['total'] = sum([t['points'] for _, t in report.items()])
