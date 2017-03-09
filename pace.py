@@ -63,7 +63,6 @@ def validate_spec(spec):
 
 
 def execute_command(command, timeout=None):
-    os.environ['TERM'] = 'dumb'
     process = pexpect.spawn(command)
     try:
         process.expect(pexpect.EOF, timeout=timeout)
@@ -87,6 +86,8 @@ def run_spec(spec, quiet=False):
 
     # max_len = max([len(t) for t in tests])
     max_len = 40
+
+    os.environ['TERM'] = 'dumb'
 
     for test_name, test in tests.items():
         if not quiet:
