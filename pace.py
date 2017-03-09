@@ -65,20 +65,20 @@ def validate_spec(spec):
 def execute_command(command, timeout=None):
     """Run the command and return the results.
 
-    :sig: (str, Optional[int]) -> Tuple[str, int, bool]
+    :sig: (str, Optional[int]) -> Tuple[int, str, Iterable[str]]
     :param command: Command to run.
     :param timeout: How long to wait for command to finish, in seconds.
-    :return: Outputs, exit status, and whether the command has timed out or not.
+    :return: Exit status, outputs, and errors.
     """
     process = pexpect.spawn(command)
+    errors = []
     try:
         process.expect(pexpect.EOF, timeout=timeout)
-        timed_out = False
     except pexpect.TIMEOUT:
-        timed_out = True
+        errors.append('Timed out.')
     finally:
         process.close(force=True)
-    return process.before, process.exitstatus, timed_out
+    return process.exitstatus, process.before, errors
 
 
 def run_script(command, script):
@@ -108,10 +108,11 @@ def run_script(command, script):
                 errors.append('Expected output not received.')
                 break
         elif step_name == 'send':
-            user_input = step_data[0].strip()[1:-1]
+            user_input = step_data[0].strip()[1:-1]     # remove the quotes
             _logger.debug('  sending: %s', user_input)
             process.sendline(user_input)
-    process.close(force=True)
+    else:
+        process.close(force=True)
     return process.exitstatus, errors
 
 
@@ -156,20 +157,16 @@ def run_spec(spec, quiet=False):
         if script is None:
             # if there is no script, assume that the command is not interactive
             # run it and wait for it to finish
-            outputs, exit_status, timed_out = execute_command(command, timeout=timeout)
+            exit_status, outputs, errors = execute_command(command, timeout=timeout)
             report[test_name]['outputs'] = outputs
-            if timed_out:
-                report[test_name]['errors'].append('Time out.')
-            else:
-                expected_status = int(test.get('return', ['0'])[0])
-                if exit_status != expected_status:
-                    report[test_name]['errors'].append('Incorrect exit status.')
         else:
             exit_status, errors = run_script(command, script)
-            report[test_name]['errors'].extend(errors)
-            expected_status = int(test.get('return', ['0'])[0])
-            if exit_status != expected_status:
-                report[test_name]['errors'].append('Incorrect exit status.')
+
+        report[test_name]['errors'].extend(errors)
+
+        expected_status = int(test.get('return', ['0'])[0])
+        if exit_status != expected_status:
+            report[test_name]['errors'].append('Incorrect exit status.')
 
         if chroot is not None:
             root = chroot[0]
