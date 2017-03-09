@@ -101,7 +101,7 @@ def run_spec(spec, quiet=False):
             print(test_name, end='')
         report[test_name] = {}
 
-        command, *rhs = test['run'][0].split(':timeout:')
+        command, *rhs = test['run'][0].split('# timeout:')
         timeout = int(rhs[0].strip()) if len(rhs) > 0 else None
         _logger.debug('running command: %s', command)
 
@@ -135,7 +135,7 @@ def run_spec(spec, quiet=False):
 
             for step_name, step_data in script:
                 if step_name == 'expect':
-                    p, t = [s.strip() for s in step_data[0].split(':timeout:')]
+                    p, t = [s.strip() for s in step_data[0].split('# timeout:')]
                     pattern = pexpect.EOF if p == 'EOF' else p.encode(ENCODING)[1:-1]
                     timeout = int(t)
                     try:
