@@ -4,14 +4,12 @@ init
 
 compile
     points = 0
-    run = gcc -c circle.c -o circle.o
-    timeout = 2
+    run = gcc -c circle.c -o circle.o :timeout: 2
     blocker = yes
 
 link
     points = 0
-    run = gcc circle.o -o circle
-    timeout = 2
+    run = gcc circle.o -o circle :timeout: 2
     blocker = yes
 
 case_1

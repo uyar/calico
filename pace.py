@@ -101,7 +101,8 @@ def run_spec(spec, quiet=False):
             print(test_name, end='')
         report[test_name] = {}
 
-        command = test['run'][0]
+        command, *rhs = test['run'][0].split(':timeout:')
+        timeout = int(rhs[0].strip()) if len(rhs) > 0 else None
         _logger.debug('running command: %s', command)
 
         chroot = test.get('chroot')
@@ -120,8 +121,6 @@ def run_spec(spec, quiet=False):
         if script is None:
             # if there is no script, assume that the command is not interactive
             # run it and wait for it to finish
-            t = test.get('timeout')
-            timeout = int(t[0]) if t is not None else None
             outputs, exit_status, timed_out = execute_command(command, timeout=timeout)
             report[test_name]['outputs'] = outputs
             if timed_out:
