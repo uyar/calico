@@ -135,9 +135,9 @@ def run_spec(spec, quiet=False):
 
             for step_name, step_data in script:
                 if step_name == 'expect':
-                    p, t = [s.strip() for s in step_data[0].split('# timeout:')]
+                    p, *rhs = [s.strip() for s in step_data[0].split('# timeout:')]
                     pattern = pexpect.EOF if p == 'EOF' else p.encode(ENCODING)[1:-1]
-                    timeout = int(t)
+                    timeout = int(rhs[0].strip()) if len(rhs) > 0 else None
                     try:
                         _logger.debug('  expecting (timeout: %2ss): %s', timeout, pattern)
                         process.expect(pattern, timeout=timeout)
