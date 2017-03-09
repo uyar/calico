@@ -128,7 +128,7 @@ def run_spec(spec, quiet=False):
 
             for step_name, step_data in script:
                 if step_name == 'expect':
-                    p, t = step_data[0].split(':timeout:')
+                    p, t = [s.strip() for s in step_data[0].split(':timeout:')]
                     pattern = pexpect.EOF if p == 'EOF' else p.encode(ENCODING)[1:-1]
                     timeout = int(t)
                     try:
@@ -142,7 +142,7 @@ def run_spec(spec, quiet=False):
                         report[test_name]['error'] = 'Expected output not received.'
                         break
                 elif step_name == 'send':
-                    raw_input = step_data[0]
+                    raw_input = step_data[0].strip()[1:-1]
                     _logger.debug('  sending: %s', raw_input)
                     process.sendline(raw_input)
             process.close()

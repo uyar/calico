@@ -20,7 +20,7 @@ case_1
     run = ./circle
     script
         expect = 'Enter radius(.*?):\s+' :timeout: 1
-        send = 1
+        send = '1'
         expect = 'Area: 3.14(\d*)\r\n' :timeout: 1
         expect = EOF :timeout: 1
     return = 0
@@ -30,7 +30,7 @@ case_0
     run = ./circle
     script
         expect = 'Enter radius(.*?):\s+' :timeout: 1
-        send = 0
+        send = '0'
         expect = 'Area: 0.00(\d*)\r\n' :timeout: 1
         expect = EOF :timeout: 1
     return = 0
@@ -40,7 +40,7 @@ case_negative
     run = ./circle
     script
         expect = 'Enter radius(.*?):\s+' :timeout: 1
-        send = -1
+        send = '-1'
         expect = EOF :timeout: 1
     return = 1
 
