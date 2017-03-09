@@ -21,6 +21,7 @@ import os
 import pexpect
 import rsonlite
 import shutil
+import sys
 
 
 ENCODING = 'utf-8'
@@ -28,38 +29,47 @@ ENCODING = 'utf-8'
 _logger = logging.getLogger(__name__)
 
 
-def validate_spec(spec):
-    for test_name, test_data in spec:
-        test = OrderedDict(test_data)
+def parse_spec(spec):
+    loaded = rsonlite.loads(spec)
+    parsed = OrderedDict()
+    try:
+        for test_name, test_data in loaded:
+            test = OrderedDict(test_data)
 
-        assert 'run' in test, (test_name, 'no run command')
-        assert len(test['run']) == 1, (test_name, 'multiple run commands')
+            assert 'run' in test, (test_name, 'no run command')
+            assert len(test['run']) == 1, (test_name, 'multiple run commands')
+            test['run'] = test['run'][0]
 
-        points = test.get('points')
-        if points is not None:
-            assert len(points) == 1, (test_name, 'multiple points values')
-            assert points[0].isdigit(), (test_name, 'non-numeric points value')
+            points = test.get('points')
+            if points is not None:
+                assert len(points) == 1, (test_name, 'multiple points values')
+                assert points[0].isdigit(), (test_name, 'non-numeric points value')
+                test['points'] = int(points[0])
 
-        timeout = test.get('timeout')
-        if timeout is not None:
-            assert len(timeout) == 1, (test_name, 'multiple timeout values')
-            assert timeout[0].isdigit(), (test_name, 'non-numeric timeout value')
+            blocker = test.get('blocker')
+            if blocker is not None:
+                assert len(blocker) == 1, (test_name, 'multiple blocker settings')
+                assert blocker[0] in ('yes', 'no'), (test_name, 'incorrect blocker value')
+                test['blocker'] = blocker[0] == 'yes'
 
-        blocker = test.get('blocker')
-        if blocker is not None:
-            assert len(blocker) == 1, (test_name, 'multiple blocker settings')
-            assert blocker[0] in ('yes', 'no'), (test_name, 'incorrect blocker value')
+            script = test.get('script')
+            if script is not None:
+                for step_name, step_data in script:
+                    assert step_name in ('expect', 'send'), (test_name, 'invalid action type')
+                    assert len(step_data) == 1, (test_name, 'multiple step data')
 
-        script = test.get('script')
-        if script is not None:
-            for step_name, step_data in script:
-                assert step_name in ('expect', 'send'), (test_name, 'invalid action type')
-                assert len(step_data) == 1, (test_name, 'multiple step data')
+            returns = test.get('return')
+            if returns is not None:
+                assert len(returns) == 1, (test_name, 'multiple returns values')
+                assert returns[0].isdigit(), (test_name, 'non-numeric returns value')
+                test['return'] = int(returns[0])
 
-        returns = test.get('return')
-        if returns is not None:
-            assert len(returns) == 1, (test_name, 'multiple returns values')
-            assert returns[0].isdigit(), (test_name, 'non-numeric returns value')
+            parsed[test_name] = test
+    except AssertionError as e:
+        print('test: %s, error: %s' % e.args[0], file=sys.stderr)
+        sys.exit(1)
+
+    return parsed
 
 
 def execute_command(command, timeout=None):
@@ -126,7 +136,7 @@ def run_test(test):
     report = {}
     report['errors'] = []
 
-    command, *rhs = test['run'][0].split('# timeout:')
+    command, *rhs = test['run'].split('# timeout:')
     timeout = int(rhs[0].strip()) if len(rhs) > 0 else None
     _logger.debug('running command: %s', command)
 
@@ -153,7 +163,7 @@ def run_test(test):
 
     report['errors'].extend(errors)
 
-    expected_status = int(test.get('return', ['0'])[0])
+    expected_status = test.get('return', 0)
     if exit_status != expected_status:
         report['errors'].append('Incorrect exit status.')
 
@@ -166,21 +176,16 @@ def run_test(test):
 
 
 def run_spec(spec, quiet=False):
-    # XXX: This function assumes that the spec is valid.
     report = OrderedDict()
 
-    tests = OrderedDict([(test_name, OrderedDict(test_data))
-                         for test_name, test_data in spec])
-
-    points = [t.get('points') for _, t in tests.items()]
-    total_points = sum([int(p[0]) for p in points if p is not None])
+    total_points = sum([t.get('points', 0) for t in spec.values()])
 
     # max_len = max([len(t) for t in tests])
     max_len = 40
 
     os.environ['TERM'] = 'dumb'
 
-    for test_name, test in tests.items():
+    for test_name, test in spec.items():
         if not quiet:
             print(test_name, end='')
 
@@ -194,12 +199,11 @@ def run_spec(spec, quiet=False):
                 print('PASSED' if len(report[test_name]['errors']) == 0 else 'FAILED')
             report[test_name]['points'] = 0
         else:
-            p = int(points[0])
-            report[test_name]['points'] = p if len(report[test_name]['errors']) == 0 else 0
+            report[test_name]['points'] = points if len(report[test_name]['errors']) == 0 else 0
             if not quiet:
-                print('%2d/%2d' % (report[test_name]['points'], p))
+                print('%2d/%2d' % (report[test_name]['points'], points))
 
-        blocker = test.get('blocker', ['no'])[0] == 'yes'
+        blocker = test.get('blocker', False)
         if blocker and (len(report[test_name]['errors']) > 0):
             break
 
@@ -213,8 +217,6 @@ def main():
     parser.add_argument('spec', help='test specifications file')
     parser.add_argument('-d', '--directory',
                         help='change to directory before doing anything')
-    parser.add_argument('--validate', action='store_true',
-                        help='validate only, no run')
     parser.add_argument('--quiet', action='store_true',
                         help='disable most messages')
     parser.add_argument('--log', action='store_true',
@@ -246,16 +248,10 @@ def main():
         _logger.addHandler(handler)
 
     with open(spec_filename, encoding=ENCODING) as f:
-        spec = rsonlite.loads(f.read())
-
-    if arguments.validate:
-        try:
-            validate_spec(spec)
-        except AssertionError as e:
-            print('test: %s, error: %s' % e.args[0])
-    else:
-        report = run_spec(spec, quiet=arguments.quiet)
-        print('Grade: %3d/%3d' % (report['total'], report['total_points']))
+        content = f.read()
+    spec = parse_spec(content)
+    report = run_spec(spec, quiet=arguments.quiet)
+    print('Grade: %3d/%3d' % (report['total'], report['total_points']))
 
 
 if __name__ == '__main__':
