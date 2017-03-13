@@ -31,41 +31,43 @@ _logger = logging.getLogger(__name__)
 
 def parse_spec(spec):
     loaded = rsonlite.loads(spec)
-    parsed = OrderedDict()
+    tests = OrderedDict()
+    total_points = 0
 
     for test_name, test_data in loaded:
         test = OrderedDict(test_data)
 
-        assert 'run' in test, (test_name, 'no run command')
-        assert len(test['run']) == 1, (test_name, 'multiple run commands')
+        assert 'run' in test, test_name + ': no run command'
+        assert len(test['run']) == 1, test_name + ': multiple run commands'
         test['run'] = test['run'][0]
 
         points = test.get('points')
         if points is not None:
-            assert len(points) == 1, (test_name, 'multiple points values')
-            assert points[0].isdigit(), (test_name, 'non-numeric points value')
+            assert len(points) == 1, test_name + ': multiple points values'
+            assert points[0].isdigit(), test_name + ': non-numeric points value'
             test['points'] = int(points[0])
 
         blocker = test.get('blocker')
         if blocker is not None:
-            assert len(blocker) == 1, (test_name, 'multiple blocker settings')
-            assert blocker[0] in ('yes', 'no'), (test_name, 'incorrect blocker value')
+            assert len(blocker) == 1, test_name + ': multiple blocker settings'
+            assert blocker[0] in ('yes', 'no'), test_name + 'incorrect blocker value'
             test['blocker'] = blocker[0] == 'yes'
 
         script = test.get('script')
         if script is not None:
             for step_name, step_data in script:
-                assert step_name in ('expect', 'send'), (test_name, 'invalid action type')
-                assert len(step_data) == 1, (test_name, 'multiple step data')
+                assert step_name in ('expect', 'send'), test_name + ': invalid action type'
+                assert len(step_data) == 1, test_name + ': multiple step data'
 
         returns = test.get('return')
         if returns is not None:
-            assert len(returns) == 1, (test_name, 'multiple returns values')
-            assert returns[0].isdigit(), (test_name, 'non-numeric returns value')
+            assert len(returns) == 1, test_name + ': multiple returns values'
+            assert returns[0].isdigit(), test_name + ': non-numeric returns value'
             test['return'] = int(returns[0])
 
-        parsed[test_name] = test
+        tests[test_name] = test
 
+    parsed = {'tests': tests, 'total_points': total_points}
     return parsed
 
 
@@ -175,14 +177,12 @@ def run_test(test):
 def run_spec(spec, quiet=False):
     report = OrderedDict()
 
-    total_points = sum([t.get('points', 0) for t in spec.values()])
-
     # max_len = max([len(t) for t in tests])
     max_len = 40
 
     os.environ['TERM'] = 'dumb'
 
-    for test_name, test in spec.items():
+    for test_name, test in spec['tests'].items():
         if not quiet:
             print(test_name, end='')
 
@@ -205,17 +205,18 @@ def run_spec(spec, quiet=False):
             break
 
     report['total'] = sum([t['points'] for _, t in report.items()])
-    report['total_points'] = total_points
+    report['total_points'] = spec['total_points']
     return report
 
 
 def main():
     parser = ArgumentParser()
-    parser.add_argument('spec', help='test specifications file')
+    parser.add_argument('spec',
+                        help='test specifications file')
     parser.add_argument('-d', '--directory',
                         help='change to directory before doing anything')
     parser.add_argument('--validate', action='store_true',
-                        help = 'validate only, no run')
+                        help='validate only, no run')
     parser.add_argument('--quiet', action='store_true',
                         help='disable most messages')
     parser.add_argument('--log', action='store_true',
@@ -251,8 +252,8 @@ def main():
 
     try:
         spec = parse_spec(content)
-    except AssertionError as e:
-        print('test: %s, error: %s' % e.args[0], file=sys.stderr)
+    except Exception as e:
+        print(e, file=sys.stderr)
         sys.exit(1)
 
     if not arguments.validate:
