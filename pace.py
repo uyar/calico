@@ -309,10 +309,11 @@ def main():
 
     if not arguments.validate:
         report = run_spec(spec, quiet=arguments.quiet)
-        print('Grade: %(scored)3d/%(over)3d' % {
+        summary = 'Grade: %(scored)3d / %(over)3d' % {
             'scored': report['points'],
             'over': report['total_points']
-        })
+        }
+        print(summary)
 
 
 if __name__ == '__main__':
