@@ -121,7 +121,7 @@ def run_script(command, script):
             pattern = pexpect.EOF if lhs == 'EOF' else lhs[1:-1]    # remove the quotes
             timeout = int(rhs[0].strip()) if len(rhs) > 0 else None
             try:
-                _logger.debug('  expecting (timeout: %2ss): %s', timeout, pattern)
+                _logger.debug('  expecting (timeout: %2ss): %s', timeout, lhs)
                 process.expect(pattern, timeout=timeout)
                 _logger.debug('  received                : %s', process.after)
             except (pexpect.TIMEOUT, pexpect.EOF):
