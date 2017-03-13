@@ -189,9 +189,17 @@ def run_test(test):
 
 
 def run_spec(spec, quiet=False):
-    report = OrderedDict()
+    """Run a test suite specification.
 
-    os.environ['TERM'] = 'dumb'
+    :sig: (Mapping[str, Any], bool) -> Mapping[str, Any]
+    :param spec: Test specifications to run.
+    :param quiet: Whether to suppress progress messages.
+    :return: A report containing the results.
+    """
+    report = OrderedDict()
+    earned_points = 0
+
+    os.environ['TERM'] = 'dumb'     # prevent color output in terminal
 
     init = spec.get('init')
     if init is not None:
@@ -201,32 +209,40 @@ def run_spec(spec, quiet=False):
     for test_name, test in spec['tests'].items():
         _logger.debug('starting test %s', test_name)
         if not quiet:
-            print(test_name, end='')
+            lead = '%(name)s %(dots)s ' % {
+                'name': test_name,
+                'dots': '.' * (MAX_LEN - len(test_name) + 1)
+            }
+            print(lead, end='')
 
         report[test_name] = run_test(test)
+        passed = len(report[test_name]['errors']) == 0
 
-        if not quiet:
-            print(' ' + '.' * (MAX_LEN - len(test_name) + 1) + ' ', end='')
         points = test.get('points')
         if points is None:
             if not quiet:
-                print('PASSED' if len(report[test_name]['errors']) == 0 else 'FAILED')
-            report[test_name]['points'] = 0
+                tail = 'PASSED' if passed else 'FAILED'
+                print(tail)
         else:
-            report[test_name]['points'] = points if len(report[test_name]['errors']) == 0 else 0
+            report[test_name]['points'] = points if passed else 0
+            earned_points += report[test_name]['points']
             if not quiet:
-                print('%2d/%2d' % (report[test_name]['points'], points))
+                tail = '%(scored)3d / %(over)3d' % {
+                    'scored': report[test_name]['points'],
+                    'over': points
+                }
+                print(tail)
 
         blocker = test.get('blocker', False)
-        if blocker and (len(report[test_name]['errors']) > 0):
+        if blocker and (not passed):
             break
 
     cleanup = spec.get('cleanup')
-    if init is not None:
+    if cleanup is not None:
         _logger.debug('running cleanup actions')
         run_test(cleanup)
 
-    report['points'] = sum([t['points'] for _, t in report.items()])
+    report['points'] = earned_points
     report['total_points'] = spec['total_points']
     return report
 
@@ -293,9 +309,9 @@ def main():
 
     if not arguments.validate:
         report = run_spec(spec, quiet=arguments.quiet)
-        print('Grade: %(ps)3d/%(tps)3d' % {
-            'ps': report['points'],
-            'tps': report['total_points']
+        print('Grade: %(scored)3d/%(over)3d' % {
+            'scored': report['points'],
+            'over': report['total_points']
         })
 
 
