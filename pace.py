@@ -52,7 +52,6 @@ def parse_spec(source):
         test['run'] = test['run'][0]
 
         assert 'script' in test, test_name + ': no script'
-        # assert len(test['script']) == 1, test_name + ': multiple scripts'
         for step_name, step_data in test['script']:
             assert step_name in ('expect', 'send'), test_name + ': invalid action type'
             assert len(step_data) == 1, test_name + ': multiple step data'
@@ -130,8 +129,7 @@ def run_test(test):
     report = {}
     report['errors'] = []
 
-    command, *rhs = test['run'].split('# timeout:')
-    timeout = int(rhs[0].strip()) if len(rhs) > 0 else None
+    command = test['run']
     _logger.debug('running command: %s', command)
 
     chroot = test.get('chroot')
