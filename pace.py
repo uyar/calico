@@ -51,6 +51,18 @@ def parse_spec(content):
         assert len(test['run']) == 1, test_name + ': multiple run commands'
         test['run'] = test['run'][0]
 
+        assert 'script' in test, test_name + ': no script'
+        # assert len(test['script']) == 1, test_name + ': multiple scripts'
+        for step_name, step_data in test['script']:
+            assert step_name in ('expect', 'send'), test_name + ': invalid action type'
+            assert len(step_data) == 1, test_name + ': multiple step data'
+
+        returns = test.get('return')
+        if returns is not None:
+            assert len(returns) == 1, test_name + ': multiple returns values'
+            assert returns[0].isdigit(), test_name + ': non-numeric returns value'
+            test['return'] = int(returns[0])
+
         points = test.get('points')
         if points is not None:
             assert len(points) == 1, test_name + ': multiple points values'
@@ -64,18 +76,6 @@ def parse_spec(content):
             assert blocker[0] in ('yes', 'no'), test_name + ': incorrect blocker value'
             test['blocker'] = blocker[0] == 'yes'
 
-        script = test.get('script')
-        if script is not None:
-            for step_name, step_data in script:
-                assert step_name in ('expect', 'send'), test_name + ': invalid action type'
-                assert len(step_data) == 1, test_name + ': multiple step data'
-
-        returns = test.get('return')
-        if returns is not None:
-            assert len(returns) == 1, test_name + ': multiple returns values'
-            assert returns[0].isdigit(), test_name + ': non-numeric returns value'
-            test['return'] = int(returns[0])
-
         if test_name in ('init', 'cleanup'):
             spec[test_name] = test
         else:
@@ -83,25 +83,6 @@ def parse_spec(content):
 
     spec['total_points'] = total_points
     return spec
-
-
-def execute_command(command, timeout=None):
-    """Run the command and return the results.
-
-    :sig: (str, Optional[int]) -> Tuple[int, str, List[str]]
-    :param command: Command to run.
-    :param timeout: How long to wait for command to finish, in seconds.
-    :return: Exit status, outputs, and errors.
-    """
-    process = pexpect.spawn(command)
-    errors = []
-    try:
-        process.expect(pexpect.EOF, timeout=timeout)
-    except pexpect.TIMEOUT:
-        errors.append('Timed out.')
-    finally:
-        process.close(force=True)
-    return process.exitstatus, process.before, errors
 
 
 def run_script(command, script):
@@ -166,13 +147,7 @@ def run_test(test):
         }
 
     script = test.get('script')
-    if script is None:
-        # if there is no script, assume that the command is not interactive
-        # run it and wait for it to finish
-        exit_status, outputs, errors = execute_command(command, timeout=timeout)
-        report['outputs'] = outputs
-    else:
-        exit_status, errors = run_script(command, script)
+    exit_status, errors = run_script(command, script)
 
     report['errors'].extend(errors)
 

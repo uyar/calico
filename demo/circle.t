@@ -1,17 +1,25 @@
 init
     run = rm -f circle.o circle
+    script
+        expect = EOF
     blocker = yes
 
 cleanup
     run = rm -f circle.o circle
+    script
+        expect = EOF
 
 compile
-    run = gcc -c circle.c -o circle.o  # timeout: 2
+    run = gcc -c circle.c -o circle.o
+    script
+        expect = EOF  # timeout: 2
     points = 0
     blocker = yes
 
 link
-    run = gcc circle.o -o circle  # timeout: 2
+    run = gcc circle.o -o circle
+    script
+        expect = EOF  # timeout: 2
     points = 0
     blocker = yes
 
