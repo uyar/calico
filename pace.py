@@ -25,13 +25,23 @@ import sys
 
 
 ENCODING = 'utf-8'
+MAX_LEN = 40
 
 _logger = logging.getLogger(__name__)
 
 
-def parse_spec(spec):
-    loaded = rsonlite.loads(spec)
+def parse_spec(content):
+    """Parse the spec file contents.
+
+    :sig: (str) -> Mapping[str, Any]
+    :param content: Spec content to parse.
+    :return: Parsed spec.
+    """
+    loaded = rsonlite.loads(content)
+
     tests = OrderedDict()
+    spec = {'tests': tests}
+
     total_points = 0
 
     for test_name, test_data in loaded:
@@ -46,6 +56,7 @@ def parse_spec(spec):
             assert len(points) == 1, test_name + ': multiple points values'
             assert points[0].isdigit(), test_name + ': non-numeric points value'
             test['points'] = int(points[0])
+            total_points += test['points']
 
         blocker = test.get('blocker')
         if blocker is not None:
@@ -65,10 +76,13 @@ def parse_spec(spec):
             assert returns[0].isdigit(), test_name + ': non-numeric returns value'
             test['return'] = int(returns[0])
 
-        tests[test_name] = test
+        if test_name in ('init', 'cleanup'):
+            spec[test_name] = test
+        else:
+            tests[test_name] = test
 
-    parsed = {'tests': tests, 'total_points': total_points}
-    return parsed
+    spec['total_points'] = total_points
+    return spec
 
 
 def execute_command(command, timeout=None):
@@ -177,19 +191,22 @@ def run_test(test):
 def run_spec(spec, quiet=False):
     report = OrderedDict()
 
-    # max_len = max([len(t) for t in tests])
-    max_len = 40
-
     os.environ['TERM'] = 'dumb'
 
+    init = spec.get('init')
+    if init is not None:
+        _logger.debug('running init actions')
+        run_test(init)
+
     for test_name, test in spec['tests'].items():
+        _logger.debug('starting test %s', test_name)
         if not quiet:
             print(test_name, end='')
 
         report[test_name] = run_test(test)
 
         if not quiet:
-            print(' ' + '.' * (max_len - len(test_name) + 1) + ' ', end='')
+            print(' ' + '.' * (MAX_LEN - len(test_name) + 1) + ' ', end='')
         points = test.get('points')
         if points is None:
             if not quiet:
@@ -204,6 +221,11 @@ def run_spec(spec, quiet=False):
         if blocker and (len(report[test_name]['errors']) > 0):
             break
 
+    cleanup = spec.get('cleanup')
+    if init is not None:
+        _logger.debug('running cleanup actions')
+        run_test(cleanup)
+
     report['points'] = sum([t['points'] for _, t in report.items()])
     report['total_points'] = spec['total_points']
     return report
@@ -216,7 +238,7 @@ def _get_parser():
     parser.add_argument('-d', '--directory',
                         help='change to directory before doing anything')
     parser.add_argument('--validate', action='store_true',
-                        help='validate only, no run')
+                        help='don\'t run tests, just validate spec')
     parser.add_argument('--quiet', action='store_true',
                         help='disable most messages')
     parser.add_argument('--log', action='store_true',
