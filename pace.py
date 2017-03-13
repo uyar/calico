@@ -30,14 +30,14 @@ MAX_LEN = 40
 _logger = logging.getLogger(__name__)
 
 
-def parse_spec(content):
-    """Parse the spec file contents.
+def parse_spec(source):
+    """Parse a test specification.
 
     :sig: (str) -> Mapping[str, Any]
-    :param content: Spec content to parse.
-    :return: Parsed spec.
+    :param source: Specification to parse.
+    :return: Parsed specification.
     """
-    loaded = rsonlite.loads(content)
+    loaded = rsonlite.loads(source)
 
     tests = OrderedDict()
     spec = {'tests': tests}
