@@ -204,16 +204,12 @@ def run_spec(spec, quiet=False):
         if blocker and (len(report[test_name]['errors']) > 0):
             break
 
-    report['total'] = sum([t['points'] for _, t in report.items()])
+    report['points'] = sum([t['points'] for _, t in report.items()])
     report['total_points'] = spec['total_points']
     return report
 
 
-def main():
-    """Entry point of the utility.
-
-    :sig: () -> None
-    """
+def _get_parser():
     parser = ArgumentParser()
     parser.add_argument('spec',
                         help='test specifications file')
@@ -227,6 +223,34 @@ def main():
                         help='create a log file')
     parser.add_argument('--debug', action='store_true',
                         help='enable debugging messages')
+    return parser
+
+
+def _setup_logging(debug, log):
+    _logger.setLevel(logging.DEBUG if debug else logging.INFO)
+
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.INFO)
+    _logger.addHandler(handler)
+
+    if debug:
+        handler = logging.StreamHandler()
+        handler.setLevel(logging.DEBUG)
+        _logger.addHandler(handler)
+
+    if log:
+        _logger.setLevel(logging.DEBUG)
+        handler = logging.FileHandler('log.txt')
+        handler.setLevel(logging.DEBUG)
+        _logger.addHandler(handler)
+
+
+def main():
+    """Entry point of the utility.
+
+    :sig: () -> None
+    """
+    parser = _get_parser()
     arguments = parser.parse_args()
 
     spec_filename = os.path.abspath(arguments.spec)
@@ -234,22 +258,7 @@ def main():
     if arguments.directory is not None:
         os.chdir(arguments.directory)
 
-    _logger.setLevel(logging.DEBUG if arguments.debug else logging.INFO)
-
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.INFO)
-    _logger.addHandler(handler)
-
-    if arguments.debug:
-        handler = logging.StreamHandler()
-        handler.setLevel(logging.DEBUG)
-        _logger.addHandler(handler)
-
-    if arguments.log:
-        _logger.setLevel(logging.DEBUG)
-        handler = logging.FileHandler('log.txt')
-        handler.setLevel(logging.DEBUG)
-        _logger.addHandler(handler)
+    _setup_logging(arguments.debug, arguments.log)
 
     with open(spec_filename, encoding=ENCODING) as f:
         content = f.read()
@@ -262,7 +271,10 @@ def main():
 
     if not arguments.validate:
         report = run_spec(spec, quiet=arguments.quiet)
-        print('Grade: %3d/%3d' % (report['total'], report['total_points']))
+        print('Grade: %(ps)3d/%(tps)3d' % {
+            'ps': report['points'],
+            'tps': report['total_points']
+        })
 
 
 if __name__ == '__main__':
