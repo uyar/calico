@@ -50,7 +50,7 @@ def parse_spec(spec):
         blocker = test.get('blocker')
         if blocker is not None:
             assert len(blocker) == 1, test_name + ': multiple blocker settings'
-            assert blocker[0] in ('yes', 'no'), test_name + 'incorrect blocker value'
+            assert blocker[0] in ('yes', 'no'), test_name + ': incorrect blocker value'
             test['blocker'] = blocker[0] == 'yes'
 
         script = test.get('script')
@@ -210,6 +210,10 @@ def run_spec(spec, quiet=False):
 
 
 def main():
+    """Entry point of the utility.
+
+    :sig: () -> None
+    """
     parser = ArgumentParser()
     parser.add_argument('spec',
                         help='test specifications file')
