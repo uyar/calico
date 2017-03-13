@@ -32,42 +32,39 @@ _logger = logging.getLogger(__name__)
 def parse_spec(spec):
     loaded = rsonlite.loads(spec)
     parsed = OrderedDict()
-    try:
-        for test_name, test_data in loaded:
-            test = OrderedDict(test_data)
 
-            assert 'run' in test, (test_name, 'no run command')
-            assert len(test['run']) == 1, (test_name, 'multiple run commands')
-            test['run'] = test['run'][0]
+    for test_name, test_data in loaded:
+        test = OrderedDict(test_data)
 
-            points = test.get('points')
-            if points is not None:
-                assert len(points) == 1, (test_name, 'multiple points values')
-                assert points[0].isdigit(), (test_name, 'non-numeric points value')
-                test['points'] = int(points[0])
+        assert 'run' in test, (test_name, 'no run command')
+        assert len(test['run']) == 1, (test_name, 'multiple run commands')
+        test['run'] = test['run'][0]
 
-            blocker = test.get('blocker')
-            if blocker is not None:
-                assert len(blocker) == 1, (test_name, 'multiple blocker settings')
-                assert blocker[0] in ('yes', 'no'), (test_name, 'incorrect blocker value')
-                test['blocker'] = blocker[0] == 'yes'
+        points = test.get('points')
+        if points is not None:
+            assert len(points) == 1, (test_name, 'multiple points values')
+            assert points[0].isdigit(), (test_name, 'non-numeric points value')
+            test['points'] = int(points[0])
 
-            script = test.get('script')
-            if script is not None:
-                for step_name, step_data in script:
-                    assert step_name in ('expect', 'send'), (test_name, 'invalid action type')
-                    assert len(step_data) == 1, (test_name, 'multiple step data')
+        blocker = test.get('blocker')
+        if blocker is not None:
+            assert len(blocker) == 1, (test_name, 'multiple blocker settings')
+            assert blocker[0] in ('yes', 'no'), (test_name, 'incorrect blocker value')
+            test['blocker'] = blocker[0] == 'yes'
 
-            returns = test.get('return')
-            if returns is not None:
-                assert len(returns) == 1, (test_name, 'multiple returns values')
-                assert returns[0].isdigit(), (test_name, 'non-numeric returns value')
-                test['return'] = int(returns[0])
+        script = test.get('script')
+        if script is not None:
+            for step_name, step_data in script:
+                assert step_name in ('expect', 'send'), (test_name, 'invalid action type')
+                assert len(step_data) == 1, (test_name, 'multiple step data')
 
-            parsed[test_name] = test
-    except AssertionError as e:
-        print('test: %s, error: %s' % e.args[0], file=sys.stderr)
-        sys.exit(1)
+        returns = test.get('return')
+        if returns is not None:
+            assert len(returns) == 1, (test_name, 'multiple returns values')
+            assert returns[0].isdigit(), (test_name, 'non-numeric returns value')
+            test['return'] = int(returns[0])
+
+        parsed[test_name] = test
 
     return parsed
 
@@ -217,6 +214,8 @@ def main():
     parser.add_argument('spec', help='test specifications file')
     parser.add_argument('-d', '--directory',
                         help='change to directory before doing anything')
+    parser.add_argument('--validate', action='store_true',
+                        help = 'validate only, no run')
     parser.add_argument('--quiet', action='store_true',
                         help='disable most messages')
     parser.add_argument('--log', action='store_true',
@@ -249,9 +248,16 @@ def main():
 
     with open(spec_filename, encoding=ENCODING) as f:
         content = f.read()
-    spec = parse_spec(content)
-    report = run_spec(spec, quiet=arguments.quiet)
-    print('Grade: %3d/%3d' % (report['total'], report['total_points']))
+
+    try:
+        spec = parse_spec(content)
+    except AssertionError as e:
+        print('test: %s, error: %s' % e.args[0], file=sys.stderr)
+        sys.exit(1)
+
+    if not arguments.validate:
+        report = run_spec(spec, quiet=arguments.quiet)
+        print('Grade: %3d/%3d' % (report['total'], report['total_points']))
 
 
 if __name__ == '__main__':
