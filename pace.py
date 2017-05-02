@@ -35,49 +35,46 @@ def parse_spec(source):
     :sig: (str) -> Mapping[str, Any]
     :param source: Specification to parse.
     :return: Mapping of specification options to values.
-    :raises ValueError: When given source is invalid.
+    :raises AssertionError: When given source is invalid.
     """
     try:
         config = yaml.load(source, yaml.RoundTripLoader)
     except yaml.YAMLError as e:
-        raise ValueError(str(e))
+        raise AssertionError(str(e))
 
     if config is None:
-        raise ValueError('No configuration')
+        raise AssertionError('No configuration')
 
     total_points = 0
     tests = [(k, v) for c in config for k, v in c.items()]
-    try:
-        for test_name, test in tests:
-            run = test.get('run')
-            assert run is not None, test_name + ': no run command'
-            assert isinstance(run, str), test_name + ': run command must be string'
+    for test_name, test in tests:
+        run = test.get('run')
+        assert run is not None, test_name + ': no run command'
+        assert isinstance(run, str), test_name + ': run command must be string'
 
-            script = test.get('script')
-            if script is None:
-                test['script'] = [('expect', 'EOF')]
-            else:
-                test['script'] = [(k, v) for s in script for k, v in s.items()]
-                for action, data in test['script']:
-                    assert action in ('expect', 'send'), test_name + ': invalid action type'
-                    assert isinstance(data, str), test_name + ': step data must be string'
+        script = test.get('script')
+        if script is None:
+            test['script'] = [('expect', 'EOF')]
+        else:
+            test['script'] = [(k, v) for s in script for k, v in s.items()]
+            for action, data in test['script']:
+                assert action in ('expect', 'send'), test_name + ': invalid action type'
+                assert isinstance(data, str), test_name + ': step data must be string'
 
-            returns = test.get('return')
-            if returns is not None:
-                assert isinstance(returns, int), test_name + ': return value must be an integer'
+        returns = test.get('return')
+        if returns is not None:
+            assert isinstance(returns, int), test_name + ': return value must be an integer'
 
-            points = test.get('points')
-            if points is not None:
-                assert isinstance(points, (int, float)), \
-                    test_name + ': points value must be numeric'
-                total_points += test['points']
+        points = test.get('points')
+        if points is not None:
+            assert isinstance(points, (int, float)), \
+                test_name + ': points value must be numeric'
+            total_points += test['points']
 
-            blocker = test.get('blocker')
-            if blocker is not None:
-                assert blocker in ('yes', 'no'), test_name + ': blocker value must be yes or no'
-                test['blocker'] = blocker == 'yes'
-    except AssertionError as e:
-        raise ValueError(str(e))
+        blocker = test.get('blocker')
+        if blocker is not None:
+            assert blocker in ('yes', 'no'), test_name + ': blocker value must be yes or no'
+            test['blocker'] = blocker == 'yes'
 
     return {'tests': OrderedDict(tests), 'total_points': total_points}
 
@@ -124,8 +121,7 @@ def run_test(test):
     :param test: Test to run.
     :return: Result report of the test.
     """
-    report = {}
-    report['errors'] = []
+    report = {'errors': []}
 
     command = test['run']
     _logger.debug('running command: %s', command)
@@ -282,7 +278,7 @@ def main(argv=None):
 
     try:
         spec = parse_spec(content)
-    except Exception as e:
+    except AssertionError as e:
         print(e, file=sys.stderr)
         sys.exit(1)
 
