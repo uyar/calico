@@ -228,20 +228,19 @@ def _setup_logging(debug, log):
     """
     _logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.INFO)
-    _logger.addHandler(handler)
-
-    if debug:
-        handler = logging.StreamHandler()
-        handler.setLevel(logging.DEBUG)
-        _logger.addHandler(handler)
+    # stream handler for console messages
+    stream_handler = logging.StreamHandler()
+    stream_handler.setLevel(logging.DEBUG if debug else logging.INFO)
+    _logger.addHandler(stream_handler)
 
     if log:
+        # force debug mode
         _logger.setLevel(logging.DEBUG)
-        handler = logging.FileHandler('log.txt')
-        handler.setLevel(logging.DEBUG)
-        _logger.addHandler(handler)
+
+        # file handler for logging messages
+        file_handler = logging.FileHandler('log.txt')
+        file_handler.setLevel(logging.DEBUG)
+        _logger.addHandler(file_handler)
 
 
 def main(argv=None):
