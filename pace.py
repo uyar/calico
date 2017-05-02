@@ -154,11 +154,11 @@ def run_test(test):
     return report
 
 
-def run_spec(spec, quiet=False):
+def run_spec(tests, quiet=False):
     """Run a test suite specification.
 
     :sig: (Mapping[str, Any], bool) -> Mapping[str, Any]
-    :param spec: Test specifications to run.
+    :param tests: Test specifications to run.
     :param quiet: Whether to suppress progress messages.
     :return: A report containing the results.
     """
@@ -167,12 +167,7 @@ def run_spec(spec, quiet=False):
 
     os.environ['TERM'] = 'dumb'     # disable color output in terminal
 
-    init = spec.get('init')
-    if init is not None:
-        _logger.debug('running init actions')
-        run_test(init)
-
-    for test_name, test in spec.items():
+    for test_name, test in tests.items():
         _logger.debug('starting test %s', test_name)
         if not quiet:
             lead = '%(name)s %(dots)s ' % {
@@ -202,11 +197,6 @@ def run_spec(spec, quiet=False):
         blocker = test.get('blocker', False)
         if blocker and (not passed):
             break
-
-    cleanup = spec.get('cleanup')
-    if cleanup is not None:
-        _logger.debug('running cleanup actions')
-        run_test(cleanup)
 
     report['points'] = earned_points
     return report
