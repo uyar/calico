@@ -32,13 +32,13 @@ _logger = logging.getLogger(__name__)
 def parse_spec(source):
     """Parse a test specification.
 
-    :sig: (str) -> Mapping[str, Any]
+    :sig: (str) -> Tuple[Mapping[str, Any], Union[int, float]]
     :param source: Specification to parse.
     :return: Mapping of specification options to values.
     :raises AssertionError: When given source is invalid.
     """
     try:
-        config = yaml.load(source, yaml.RoundTripLoader)
+        config = yaml.round_trip_load('--- !!omap\n' + source if source else source)
     except yaml.YAMLError as e:
         raise AssertionError(str(e))
 
@@ -46,8 +46,7 @@ def parse_spec(source):
         raise AssertionError('No configuration')
 
     total_points = 0
-    tests = [(k, v) for c in config for k, v in c.items()]
-    for test_name, test in tests:
+    for test_name, test in config.items():
         run = test.get('run')
         assert run is not None, test_name + ': no run command'
         assert isinstance(run, str), test_name + ': run command must be string'
@@ -76,7 +75,7 @@ def parse_spec(source):
             assert blocker in ('yes', 'no'), test_name + ': blocker value must be yes or no'
             test['blocker'] = blocker == 'yes'
 
-    return {'tests': OrderedDict(tests), 'total_points': total_points}
+    return config, total_points
 
 
 def run_script(command, script):
@@ -173,7 +172,7 @@ def run_spec(spec, quiet=False):
         _logger.debug('running init actions')
         run_test(init)
 
-    for test_name, test in spec['tests'].items():
+    for test_name, test in spec.items():
         _logger.debug('starting test %s', test_name)
         if not quiet:
             lead = '%(name)s %(dots)s ' % {
@@ -210,7 +209,6 @@ def run_spec(spec, quiet=False):
         run_test(cleanup)
 
     report['points'] = earned_points
-    report['total_points'] = spec['total_points']
     return report
 
 
@@ -277,16 +275,16 @@ def main(argv=None):
         content = f.read()
 
     try:
-        spec = parse_spec(content)
+        tests, total_points = parse_spec(content)
     except AssertionError as e:
         print(e, file=sys.stderr)
         sys.exit(1)
 
     if not arguments.validate:
-        report = run_spec(spec, quiet=arguments.quiet)
+        report = run_spec(tests, quiet=arguments.quiet)
         summary = 'Grade: %(scored)3d / %(over)3d' % {
             'scored': report['points'],
-            'over': report['total_points']
+            'over': total_points
         }
         print(summary)
 

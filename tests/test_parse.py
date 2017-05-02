@@ -14,8 +14,8 @@ def test_invalid_format_should_raise_error():
 
 
 def test_case_with_run_command_should_be_ok():
-    config = parse_spec('- c0:\n    run: ls')
-    assert config['tests']['c0']['run'] == 'ls'
+    config, _ = parse_spec('- c0:\n    run: ls')
+    assert config['c0']['run'] == 'ls'
 
 
 def test_case_without_run_command_should_raise_error():
@@ -31,8 +31,8 @@ def test_case_with_multiple_run_commands_should_raise_error():
 
 
 def test_case_with_no_script_should_expect_eof():
-    config = parse_spec('- c0:\n    run: ls')
-    assert config['tests']['c0']['script'] == [('expect', 'EOF')]
+    config, _ = parse_spec('- c0:\n    run: ls')
+    assert config['c0']['script'] == [('expect', 'EOF')]
 
 
 def test_case_with_invalid_script_action_should_raise_error():
@@ -54,8 +54,8 @@ def test_case_with_action_with_non_quoted_data_should_raise_error():
 
 
 def test_case_with_integer_return_value_should_be_ok():
-    config = parse_spec('- c0:\n    run: ls\n    return: 1')
-    assert config['tests']['c0']['return'] == 1
+    config, _ = parse_spec('- c0:\n    run: ls\n    return: 1')
+    assert config['c0']['return'] == 1
 
 
 def test_case_with_non_integer_return_value_should_raise_error():
@@ -65,8 +65,8 @@ def test_case_with_non_integer_return_value_should_raise_error():
 
 
 def test_case_with_numeric_points_value_should_be_ok():
-    config = parse_spec('- c0:\n    run: ls\n    points: 1.5\n')
-    assert config['tests']['c0']['points'] == 1.5
+    config, _ = parse_spec('- c0:\n    run: ls\n    points: 1.5\n')
+    assert config['c0']['points'] == 1.5
 
 
 def test_case_with_non_numeric_points_value_should_raise_error():
@@ -76,13 +76,13 @@ def test_case_with_non_numeric_points_value_should_raise_error():
 
 
 def test_case_with_set_blocker_value_should_be_ok():
-    config = parse_spec('- c0:\n    run: ls\n    blocker: yes\n')
-    assert config['tests']['c0']['blocker']
+    config, _ = parse_spec('- c0:\n    run: ls\n    blocker: yes\n')
+    assert config['c0']['blocker']
 
 
 def test_case_with_unset_blocker_value_should_be_ok():
-    config = parse_spec('- c0:\n    run: ls\n    blocker: no\n')
-    assert not config['tests']['c0']['blocker']
+    config, _ = parse_spec('- c0:\n    run: ls\n    blocker: no\n')
+    assert not config['c0']['blocker']
 
 
 def test_case_with_non_boolean_blocker_value_should_raise_error():
@@ -100,5 +100,5 @@ def test_total_points_should_be_correctly_computed():
           run: ls
           points: 25
     """
-    config = parse_spec(source)
-    assert config['total_points'] == 40
+    _, total_points = parse_spec(source)
+    assert total_points == 40

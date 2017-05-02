@@ -5,7 +5,9 @@ from typing import Any, List, Mapping, Optional, Tuple, Union
 from argparse import ArgumentParser
 
 
-def parse_spec(source: str) -> Mapping[str, Any]: ...
+def parse_spec(
+        source: str
+) -> Tuple[Mapping[str, Any], Union[int, float]]: ...
 
 def run_script(command: str, script: List[str]) -> Tuple[int, List[str]]: ...
 
