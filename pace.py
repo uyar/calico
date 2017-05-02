@@ -38,15 +38,16 @@ def parse_spec(source):
     :raises AssertionError: When given source is invalid.
     """
     try:
-        config = yaml.round_trip_load('--- !!omap\n' + source if source else source)
+        config = yaml.round_trip_load(source)
     except yaml.YAMLError as e:
         raise AssertionError(str(e))
 
     if config is None:
         raise AssertionError('No configuration')
 
+    tests = [(k, v) for c in config for k, v in c.items()]
     total_points = 0
-    for test_name, test in config.items():
+    for test_name, test in tests:
         run = test.get('run')
         assert run is not None, test_name + ': no run command'
         assert isinstance(run, str), test_name + ': run command must be string'
@@ -75,7 +76,7 @@ def parse_spec(source):
             assert blocker in ('yes', 'no'), test_name + ': blocker value must be yes or no'
             test['blocker'] = blocker == 'yes'
 
-    return config, total_points
+    return OrderedDict(tests), total_points
 
 
 def run_script(command, script):
