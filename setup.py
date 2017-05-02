@@ -22,7 +22,7 @@ setup(
     ],
     keywords='cli testing programming assignment',
     py_modules=['pace'],
-    install_requires=['pexpect', 'rsonlite'],
+    install_requires=['pexpect', 'ruamel.yaml'],
     extras_require={
         'dev': [
             'flake8',

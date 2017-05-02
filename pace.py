@@ -15,11 +15,11 @@
 
 from argparse import ArgumentParser
 from collections import OrderedDict
+from ruamel import yaml
 
 import logging
 import os
 import pexpect
-import rsonlite
 import shutil
 import sys
 
@@ -34,53 +34,52 @@ def parse_spec(source):
 
     :sig: (str) -> Mapping[str, Any]
     :param source: Specification to parse.
-    :return: Parsed specification.
+    :return: Mapping of specification options to values.
+    :raises ValueError: When given source is invalid.
     """
-    loaded = rsonlite.loads(source)
+    try:
+        config = yaml.load(source, yaml.RoundTripLoader)
+    except yaml.YAMLError as e:
+        raise ValueError(str(e))
 
-    tests = OrderedDict()
-    spec = {'tests': tests}
+    if config is None:
+        raise ValueError('No configuration')
 
     total_points = 0
+    tests = [(k, v) for c in config for k, v in c.items()]
+    try:
+        for test_name, test in tests:
+            run = test.get('run')
+            assert run is not None, test_name + ': no run command'
+            assert isinstance(run, str), test_name + ': run command must be string'
 
-    for test_name, test_data in loaded:
-        test = OrderedDict(test_data)
+            script = test.get('script')
+            if script is None:
+                test['script'] = [('expect', 'EOF')]
+            else:
+                test['script'] = [(k, v) for s in script for k, v in s.items()]
+                for action, data in test['script']:
+                    assert action in ('expect', 'send'), test_name + ': invalid action type'
+                    assert isinstance(data, str), test_name + ': step data must be string'
 
-        assert 'run' in test, test_name + ': no run command'
-        assert len(test['run']) == 1, test_name + ': multiple run commands'
-        test['run'] = test['run'][0]
+            returns = test.get('return')
+            if returns is not None:
+                assert isinstance(returns, int), test_name + ': return value must be an integer'
 
-        assert 'script' in test, test_name + ': no script'
-        for step_name, step_data in test['script']:
-            assert step_name in ('expect', 'send'), test_name + ': invalid action type'
-            assert len(step_data) == 1, test_name + ': multiple step data'
+            points = test.get('points')
+            if points is not None:
+                assert isinstance(points, (int, float)), \
+                    test_name + ': points value must be numeric'
+                total_points += test['points']
 
-        returns = test.get('return')
-        if returns is not None:
-            assert len(returns) == 1, test_name + ': multiple returns values'
-            assert returns[0].isdigit(), test_name + ': non-numeric returns value'
-            test['return'] = int(returns[0])
+            blocker = test.get('blocker')
+            if blocker is not None:
+                assert blocker in ('yes', 'no'), test_name + ': blocker value must be yes or no'
+                test['blocker'] = blocker == 'yes'
+    except AssertionError as e:
+        raise ValueError(str(e))
 
-        points = test.get('points')
-        if points is not None:
-            assert len(points) == 1, test_name + ': multiple points values'
-            assert points[0].isdigit(), test_name + ': non-numeric points value'
-            test['points'] = int(points[0])
-            total_points += test['points']
-
-        blocker = test.get('blocker')
-        if blocker is not None:
-            assert len(blocker) == 1, test_name + ': multiple blocker settings'
-            assert blocker[0] in ('yes', 'no'), test_name + ': incorrect blocker value'
-            test['blocker'] = blocker[0] == 'yes'
-
-        if test_name in ('init', 'cleanup'):
-            spec[test_name] = test
-        else:
-            tests[test_name] = test
-
-    spec['total_points'] = total_points
-    return spec
+    return {'tests': OrderedDict(tests), 'total_points': total_points}
 
 
 def run_script(command, script):

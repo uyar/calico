@@ -40,8 +40,8 @@ def test_valid_spec_file_should_be_validated(capsys):
 
 
 def test_invalid_spec_file_should_raise_error(capsys):
-    with patch('builtins.open', mock_open(read_data='dummy'), create=True):
+    with patch('builtins.open', mock_open(read_data=''), create=True):
         with raises(SystemExit):
             pace.main(argv=['pace', '--validate', circle_spec_file])
         out, err = capsys.readouterr()
-        assert 'too many values' in err
+        assert 'No configuration' in err
