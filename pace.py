@@ -219,8 +219,13 @@ def run_spec(spec, quiet=False):
     return report
 
 
-def _get_parser():
-    parser = ArgumentParser()
+def _get_parser(prog):
+    """Get a parser for command-line arguments.
+
+    :sig: (str) -> ArgumentParser
+    :param prog: Name of program.
+    """
+    parser = ArgumentParser(prog=prog)
     parser.add_argument('spec', help='test specifications file')
     parser.add_argument('-d', '--directory', help='change to directory before doing anything')
     parser.add_argument('--validate', action='store_true',
@@ -232,6 +237,12 @@ def _get_parser():
 
 
 def _setup_logging(debug, log):
+    """Set up logging levels and handlers.
+
+    :sig: (bool, bool) -> None
+    :param debug: Whether to activate debugging.
+    :param log: Whether to activate logging.
+    """
     _logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
     handler = logging.StreamHandler()
@@ -250,13 +261,15 @@ def _setup_logging(debug, log):
         _logger.addHandler(handler)
 
 
-def main():
+def main(argv=None):
     """Entry point of the utility.
 
-    :sig: () -> None
+    :sig: (Optional[List[str]]) -> None
+    :param argv: Command line arguments.
     """
-    parser = _get_parser()
-    arguments = parser.parse_args()
+    argv = argv if argv is not None else sys.argv
+    parser = _get_parser(prog=argv[0])
+    arguments = parser.parse_args(argv[1:])
 
     spec_filename = os.path.abspath(arguments.spec)
 
