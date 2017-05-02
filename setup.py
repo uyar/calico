@@ -13,12 +13,26 @@ setup(
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: GNU Lesser General Public License v3 (LGPLv3)',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Programming Language :: Python :: 3.5',
     ],
     keywords='cli test',
     py_modules=['pace'],
     install_requires=['pexpect', 'rsonlite'],
+    extras_require={
+        'dev': [
+            'flake8',
+            'mypy'
+        ],
+        'doc': [
+            'sphinx',
+            'sphinx_rtd_theme'
+        ],
+        'test': [
+            'pytest',
+            'pytest-cov'
+        ],
+    },
     entry_points="""
         [console_scripts]
         pace=pace:main
