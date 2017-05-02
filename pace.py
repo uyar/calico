@@ -34,7 +34,7 @@ def parse_spec(source):
 
     :sig: (str) -> Tuple[Mapping[str, Any], Union[int, float]]
     :param source: Specification to parse.
-    :return: Mapping of specification options to values.
+    :return: Validated tests and total points.
     :raises AssertionError: When given source is invalid.
     """
     try:
@@ -254,29 +254,27 @@ def main(argv=None):
     parser = _get_parser(prog=argv[0])
     arguments = parser.parse_args(argv[1:])
 
-    spec_filename = os.path.abspath(arguments.spec)
-
-    if arguments.directory is not None:
-        os.chdir(arguments.directory)
-
     _setup_logging(arguments.debug, arguments.log)
 
-    with open(spec_filename) as f:
-        content = f.read()
-
     try:
+        if arguments.directory is not None:
+            os.chdir(arguments.directory)
+
+        spec_filename = os.path.abspath(arguments.spec)
+        with open(spec_filename) as f:
+            content = f.read()
         tests, total_points = parse_spec(content)
-    except AssertionError as e:
+
+        if not arguments.validate:
+            report = run_spec(tests, quiet=arguments.quiet)
+            summary = 'Grade: %(scored)3d / %(over)3d' % {
+                'scored': report['points'],
+                'over': total_points
+            }
+            print(summary)
+    except Exception as e:
         print(e, file=sys.stderr)
         sys.exit(1)
-
-    if not arguments.validate:
-        report = run_spec(tests, quiet=arguments.quiet)
-        summary = 'Grade: %(scored)3d / %(over)3d' % {
-            'scored': report['points'],
-            'over': total_points
-        }
-        print(summary)
 
 
 if __name__ == '__main__':
