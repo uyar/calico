@@ -24,7 +24,6 @@ import shutil
 import sys
 
 
-ENCODING = 'utf-8'
 MAX_LEN = 40
 
 _logger = logging.getLogger(__name__)
@@ -172,7 +171,7 @@ def run_spec(spec, quiet=False):
     report = OrderedDict()
     earned_points = 0
 
-    os.environ['TERM'] = 'dumb'     # prevent color output in terminal
+    os.environ['TERM'] = 'dumb'     # disable color output in terminal
 
     init = spec.get('init')
     if init is not None:
@@ -222,18 +221,13 @@ def run_spec(spec, quiet=False):
 
 def _get_parser():
     parser = ArgumentParser()
-    parser.add_argument('spec',
-                        help='test specifications file')
-    parser.add_argument('-d', '--directory',
-                        help='change to directory before doing anything')
+    parser.add_argument('spec', help='test specifications file')
+    parser.add_argument('-d', '--directory', help='change to directory before doing anything')
     parser.add_argument('--validate', action='store_true',
                         help='don\'t run tests, just validate spec')
-    parser.add_argument('--quiet', action='store_true',
-                        help='disable most messages')
-    parser.add_argument('--log', action='store_true',
-                        help='create a log file')
-    parser.add_argument('--debug', action='store_true',
-                        help='enable debugging messages')
+    parser.add_argument('--quiet', action='store_true', help='disable most messages')
+    parser.add_argument('--log', action='store_true', help='create a log file')
+    parser.add_argument('--debug', action='store_true', help='enable debugging messages')
     return parser
 
 
@@ -271,7 +265,7 @@ def main():
 
     _setup_logging(arguments.debug, arguments.log)
 
-    with open(spec_filename, encoding=ENCODING) as f:
+    with open(spec_filename) as f:
         content = f.read()
 
     try:
