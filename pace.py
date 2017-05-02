@@ -262,6 +262,7 @@ def main(argv=None):
         spec_filename = os.path.abspath(arguments.spec)
         with open(spec_filename) as f:
             content = f.read()
+
         tests, total_points = parse_spec(content)
 
         if not arguments.validate:

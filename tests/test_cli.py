@@ -27,6 +27,20 @@ def test_no_spec_file_should_print_usage_and_exit(capsys):
     assert 'required: spec' in err
 
 
+def test_non_existing_base_directory_should_raise_error(capsys):
+    with raises(SystemExit):
+        pace.main(argv=['pace', '-d', 'dummy', circle_spec_file])
+    out, err = capsys.readouterr()
+    assert 'No such file or directory:' in err
+
+
+def test_non_existing_spec_file_should_raise_error(capsys):
+    with raises(SystemExit):
+        pace.main(argv=['pace', 'dummy.spec'])
+    out, err = capsys.readouterr()
+    assert 'No such file or directory:' in err
+
+
 def test_existing_spec_file_should_be_ok(capsys):
     pace.main(argv=['pace', circle_spec_file])
     out, err = capsys.readouterr()
