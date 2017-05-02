@@ -3,8 +3,8 @@ from setuptools import setup
 
 setup(
     name='pace',
-    version='1.0a1',
-    description='Programming assignment checker.',
+    version='1.0a2',
+    description='Programming assignment checker and evaluator.',
     long_description='',
     url='https://bitbucket.org/uyar/pace',
     author='H. Turgut Uyar',
@@ -12,11 +12,15 @@ setup(
     license='GPL',
     classifiers=[
         'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
+        'Environment :: Console',
+        'Intended Audience :: Education',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
-        'Programming Language :: Python :: 3.5',
+        'Operating System :: POSIX :: Linux',
+        'Programming Language :: Python :: 3.4',
+        'Topic :: Education :: Testing',
+        'Topic :: Utilities'
     ],
-    keywords='cli test',
+    keywords='cli testing programming assignment',
     py_modules=['pace'],
     install_requires=['pexpect', 'rsonlite'],
     extras_require={
