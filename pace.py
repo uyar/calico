@@ -54,16 +54,28 @@ def parse_spec(source):
 
         script = test.get('script')
         if script is None:
-            test['script'] = [('expect', 'EOF')]
+            test['script'] = [('expect', 'EOF', None)]
         else:
-            test['script'] = [(k, v) for s in script for k, v in s.items()]
-            for action, data in test['script']:
+            test['script'] = []
+            for step in script:
+                action, data = [(k, v) for k, v in step.items()][0]
                 assert action in ('expect', 'send'), test_name + ': invalid action type'
                 assert isinstance(data, str), test_name + ': step data must be string'
+                timeout = None
+                try:
+                    full_comment = step.ca.items[action][2].value
+                    comment = full_comment[1:].strip()
+                    if comment.startswith('timeout:'):
+                        timeout = comment[8:].strip()
+                        assert timeout.isdigit(), test_name + ': timeout value must be integer'
+                except KeyError:
+                    pass
+                script_item = (action, data, int(timeout) if timeout is not None else None)
+                test['script'].append(script_item)
 
         returns = test.get('return')
         if returns is not None:
-            assert isinstance(returns, int), test_name + ': return value must be an integer'
+            assert isinstance(returns, int), test_name + ': return value must be integer'
 
         points = test.get('points')
         if points is not None:
@@ -90,9 +102,9 @@ def run_script(command, script):
     process = pexpect.spawn(command)
     process.setecho(False)
     errors = []
-    for step_name, step_data in script:
-        if step_name == 'expect':
-            lhs, *rhs = [s.strip() for s in step_data[0].split('# timeout:')]
+    for action, data, timeout in script:
+        if action == 'expect':
+            lhs, *rhs = [s.strip() for s in data[0].split('# timeout:')]
             pattern = pexpect.EOF if lhs == 'EOF' else lhs[1:-1]    # remove the quotes
             timeout = int(rhs[0].strip()) if len(rhs) > 0 else None
             try:
@@ -105,8 +117,8 @@ def run_script(command, script):
                 _logger.debug('FAILED: Expected output not received.')
                 errors.append('Expected output not received.')
                 break
-        elif step_name == 'send':
-            user_input = step_data[0].strip()[1:-1]     # remove the quotes
+        elif action == 'send':
+            user_input = data[0].strip()[1:-1]     # remove the quotes
             _logger.debug('  sending: %s', user_input)
             process.sendline(user_input)
     else:
