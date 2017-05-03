@@ -6,7 +6,8 @@ History
 1.0a2 (unreleased)
 ------------------
 
-* More consistent spec file handling.
+* Switched configuration format from RSON to YAML.
+* Added option for test visibility in report.
 
 1.0a1 (unreleased)
 ------------------

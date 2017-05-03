@@ -5,12 +5,10 @@
 
 - compile:
     run: gcc -c circle.c -o circle.o     # timeout: 2
-    points: 0
     blocker: yes
 
 - link:
     run: gcc circle.o -o circle          # timeout: 2
-    points: 0
     blocker: yes
 
 - case_1:
