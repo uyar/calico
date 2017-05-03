@@ -27,35 +27,50 @@ def test_no_spec_file_should_print_usage_and_exit(capsys):
     assert 'required: spec' in err
 
 
-def test_non_existing_base_directory_should_raise_error(capsys):
-    with raises(SystemExit):
-        pace.main(argv=['pace', '-d', 'dummy', circle_spec_file])
-    out, err = capsys.readouterr()
-    assert 'No such file or directory:' in err
-
-
-def test_non_existing_spec_file_should_raise_error(capsys):
-    with raises(SystemExit):
-        pace.main(argv=['pace', 'dummy.spec'])
-    out, err = capsys.readouterr()
-    assert 'No such file or directory:' in err
-
-
 def test_existing_spec_file_should_be_ok(capsys):
     pace.main(argv=['pace', circle_spec_file])
     out, err = capsys.readouterr()
     assert err == ''
 
 
-def test_valid_spec_file_should_be_validated(capsys):
+def test_non_existing_spec_file_should_exit_with_error(capsys):
+    with raises(SystemExit):
+        pace.main(argv=['pace', 'dummy.spec'])
+    out, err = capsys.readouterr()
+    assert 'No such file or directory:' in err
+
+
+# TODO: add tests for -d option
+
+
+def test_non_existing_base_directory_should_exit_with_error(capsys):
+    with raises(SystemExit):
+        pace.main(argv=['pace', '-d', 'dummy', circle_spec_file])
+    out, err = capsys.readouterr()
+    assert 'No such file or directory:' in err
+
+
+def test_validate_valid_spec_file_should_not_print_output(capsys):
     pace.main(argv=['pace', '--validate', circle_spec_file])
     out, err = capsys.readouterr()
     assert out == ''
 
 
-def test_invalid_spec_file_should_raise_error(capsys):
+def test_validate_invalid_spec_file_should_exit_with_error(capsys):
     with patch('builtins.open', mock_open(read_data=''), create=True):
         with raises(SystemExit):
             pace.main(argv=['pace', '--validate', circle_spec_file])
         out, err = capsys.readouterr()
         assert 'No configuration' in err
+
+
+# TODO: add tests for --quiet option
+
+
+# TODO: add tests for --log option
+
+
+# TODO: add tests for --debug option
+
+
+# TODO: add tests for summary output
