@@ -276,6 +276,37 @@ def test_case_non_boolean_blocker_value_should_raise_error():
     assert 'blocker value must be yes or no' in str(e)
 
 
+def test_case_visible_set_should_be_ok():
+    source = """
+      - c1:
+          run: echo 1
+          visible: yes
+    """
+    config, _ = parse_spec(source)
+    assert config['c1']['visible']
+
+
+def test_case_visible_unset_should_be_ok():
+    source = """
+      - c1:
+          run: echo 1
+          visible: no
+    """
+    config, _ = parse_spec(source)
+    assert not config['c1']['visible']
+
+
+def test_case_non_boolean_visibility_value_should_raise_error():
+    source = """
+      - c1:
+          run: echo 1
+          visible: maybe
+    """
+    with raises(AssertionError) as e:
+        parse_spec(source)
+    assert 'visibility value must be yes or no' in str(e)
+
+
 def test_case_order_should_be_preserved():
     source = """
       - c2:

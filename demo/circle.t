@@ -1,5 +1,6 @@
 - init:
     run: rm -f circle.o circle
+    visible: no
     blocker: yes
 
 - compile:
@@ -43,3 +44,4 @@
 
 - cleanup:
     run: rm -f circle.o circle
+    visible: no

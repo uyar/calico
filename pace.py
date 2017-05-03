@@ -96,6 +96,11 @@ def parse_spec(source):
             assert blocker in ('yes', 'no'), test_name + ': blocker value must be yes or no'
             test['blocker'] = blocker == 'yes'
 
+        visible = test.get('visible')
+        if visible is not None:
+            assert visible in ('yes', 'no'), test_name + ': visibility value must be yes or no'
+            test['visible'] = visible == 'yes'
+
     return OrderedDict(tests), total_points
 
 
@@ -187,7 +192,8 @@ def run_spec(tests, quiet=False):
 
     for test_name, test in tests.items():
         _logger.debug('starting test %s', test_name)
-        if not quiet:
+        visible = test.get('visible', True)
+        if (not quiet) and visible:
             lead = '%(name)s %(dots)s ' % {
                 'name': test_name,
                 'dots': '.' * (MAX_LEN - len(test_name) + 1)
@@ -199,13 +205,13 @@ def run_spec(tests, quiet=False):
 
         points = test.get('points')
         if points is None:
-            if not quiet:
+            if (not quiet) and visible:
                 tail = 'PASSED' if passed else 'FAILED'
                 print(tail)
         else:
             report[test_name]['points'] = points if passed else 0
             earned_points += report[test_name]['points']
-            if not quiet:
+            if (not quiet) and visible:
                 tail = '%(scored)3d / %(over)3d' % {
                     'scored': report[test_name]['points'],
                     'over': points
