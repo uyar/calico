@@ -34,8 +34,8 @@ def parse_spec(source):
 
     :sig: (str) -> Tuple[Mapping[str, Any], Union[int, float]]
     :param source: Specification to parse.
-    :return: Validated tests and total points.
-    :raises AssertionError: When given source is invalid.
+    :return: Tests in the spec file and their total points.
+    :raise AssertionError: When given spec source is invalid.
     """
     try:
         config = yaml.round_trip_load(source)
