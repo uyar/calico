@@ -124,9 +124,8 @@ def run_script(command, script):
                 errors.append('Expected output not received.')
                 break
         elif action == 'send':
-            user_input = data[0].strip()
-            _logger.debug('  sending: %s', user_input)
-            process.sendline(user_input)
+            _logger.debug('  sending: %s', data)
+            process.sendline(data)
     else:
         process.close(force=True)
     return process.exitstatus, errors
@@ -275,12 +274,12 @@ def main(argv=None):
     _setup_logging(arguments.debug, arguments.log)
 
     try:
-        if arguments.directory is not None:
-            os.chdir(arguments.directory)
-
         spec_filename = os.path.abspath(arguments.spec)
         with open(spec_filename) as f:
             content = f.read()
+
+        if arguments.directory is not None:
+            os.chdir(arguments.directory)
 
         tests, total_points = parse_spec(content)
 
