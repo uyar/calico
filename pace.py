@@ -120,15 +120,18 @@ def run_script(command, script):
             try:
                 _logger.debug('  expecting (timeout: %2ss): %s', timeout, data)
                 process.expect(pattern, timeout=timeout)
-                _logger.debug('  received                : %s', process.after)
+                received = '_EOF_' if '.EOF' in repr(process.after) else process.after
+                _logger.debug('  received                : %s', received)
             except pexpect.EOF:
-                _logger.debug('received: %s', process.before)
+                received = '_EOF_' if '.EOF' in repr(process.before) else process.before
+                _logger.debug('received: %s', received)
                 process.close(force=True)
                 _logger.debug('FAILED: Expected output not received.')
                 errors.append('Expected output not received.')
                 break
             except pexpect.TIMEOUT:
-                _logger.debug('received: %s', process.before)
+                received = '_EOF_' if '.EOF' in repr(process.before) else process.before
+                _logger.debug('received: %s', received)
                 process.close(force=True)
                 _logger.debug('FAILED: Timeout exceeded.')
                 errors.append('Timeout exceeded.')
