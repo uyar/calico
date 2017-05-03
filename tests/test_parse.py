@@ -51,7 +51,7 @@ def test_case_with_no_script_should_expect_eof():
           run: echo 1
     """
     config, _ = parse_spec(source)
-    assert config['c1']['script'] == [('expect', 'EOF', None)]
+    assert config['c1']['script'] == [('expect', '_EOF_', None)]
 
 
 def test_case_script_with_invalid_action_should_raise_error():
@@ -94,10 +94,10 @@ def test_case_script_with_action_data_eof_should_be_ok():
       - c1:
           run: echo 1
           script:
-            - expect: EOF
+            - expect: _EOF_
     """
     config, _ = parse_spec(source)
-    assert config['c1']['script'] == [('expect', 'EOF', None)]
+    assert config['c1']['script'] == [('expect', '_EOF_', None)]
 
 
 def test_case_script_with_multiple_action_data_should_raise_error():
@@ -121,11 +121,11 @@ def test_case_script_order_should_be_preserved():
           script:
             - expect: 'foo'
             - send: '1'
-            - expect: EOF
+            - expect: _EOF_
     """
     config, _ = parse_spec(source)
     assert config['c1']['script'] == [('expect', 'foo', None), ('send', '1', None),
-                                      ('expect', 'EOF', None)]
+                                      ('expect', '_EOF_', None)]
 
 
 def test_case_script_action_with_integer_timeout_value_should_be_ok():
@@ -169,7 +169,7 @@ def test_case_run_with_timeout_should_generate_expect_eof_with_timeout():
           run: echo 1 # timeout: 5
     """
     config, _ = parse_spec(source)
-    assert config['c1']['script'] == [('expect', 'EOF', 5)]
+    assert config['c1']['script'] == [('expect', '_EOF_', 5)]
 
 
 def test_case_run_with_non_numeric_timeout_value_should_raise_error():

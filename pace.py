@@ -67,7 +67,7 @@ def parse_spec(source):
             timeout = _get_comment(test, 'run', 'timeout')
             assert (timeout is None) or timeout.isdigit(), \
                 test_name + ': timeout value must be integer'
-            script_item = ('expect', 'EOF', int(timeout) if timeout is not None else None)
+            script_item = ('expect', '_EOF_', int(timeout) if timeout is not None else None)
             test['script'] = [script_item]
         else:
             test['script'] = []
@@ -112,7 +112,7 @@ def run_script(command, script):
     errors = []
     for action, data, timeout in script:
         if action == 'expect':
-            pattern = pexpect.EOF if data == 'EOF' else data[1:-1]  # remove the quotes
+            pattern = pexpect.EOF if data == '_EOF_' else data
             try:
                 _logger.debug('  expecting (timeout: %2ss): %s', timeout, data)
                 process.expect(pattern, timeout=timeout)
@@ -124,7 +124,7 @@ def run_script(command, script):
                 errors.append('Expected output not received.')
                 break
         elif action == 'send':
-            user_input = data[0].strip()[1:-1]  # remove the quotes
+            user_input = data[0].strip()
             _logger.debug('  sending: %s', user_input)
             process.sendline(user_input)
     else:

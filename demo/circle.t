@@ -18,7 +18,7 @@
       - expect: 'Enter radius(.*?):\s+'  # timeout: 1
       - send: '1'
       - expect: 'Area: 3.14(\d*)\r\n'    # timeout: 1
-      - expect: EOF                      # timeout: 1
+      - expect: _EOF_                    # timeout: 1
     return: 0
     points: 10
 
@@ -28,7 +28,7 @@
       - expect: 'Enter radius(.*?):\s+'  # timeout: 1
       - send: '0'
       - expect: 'Area: 0.00(\d*)\r\n'    # timeout: 1
-      - expect: EOF                      # timeout: 1
+      - expect: _EOF_                    # timeout: 1
     return: 0
     points: 20
 
@@ -37,7 +37,7 @@
     script:
       - expect: 'Enter radius(.*?):\s+'  # timeout: 1
       - send: '-1'
-      - expect: EOF                      # timeout: 1
+      - expect: _EOF_                    # timeout: 1
     return: 1
     points: 30
 
