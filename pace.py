@@ -20,7 +20,6 @@ from ruamel import yaml
 import logging
 import os
 import pexpect
-import shutil
 import sys
 
 
@@ -142,29 +141,23 @@ def run_script(command, script):
     return process.exitstatus, errors
 
 
-def run_test(test):
+def run_test(test, jailed=False):
     """Run a test and produce a report.
 
-    :sig: (Mapping[str, List[str]]) -> Mapping[str, Union[str, List[str]]]
+    :sig: (Mapping[str, List[str]], Optional[bool]) -> Mapping[str, Union[str, List[str]]]
     :param test: Test to run.
     :return: Result report of the test.
     """
+    global FAKEROOT
     report = {'errors': []}
 
     command = test['run']
-    _logger.debug('running command: %s', command)
-
-    chroot = test.get('chroot')
-    if chroot is not None:
-        root = chroot[0]
-        _logger.debug('changing root: %s', root)
-        if os.path.exists(root):
-            shutil.rmtree(root)
-        shutil.copytree('.', root)
+    if jailed:
         command = 'fakechroot chroot %(root)s %(command)s' % {
-            'root': root,
+            'root': os.getcwd(),
             'command': command
         }
+    _logger.debug('running command: %s', command)
 
     script = test.get('script')
     exit_status, errors = run_script(command, script)
@@ -174,11 +167,6 @@ def run_test(test):
     expected_status = test.get('return', 0)
     if exit_status != expected_status:
         report['errors'].append('Incorrect exit status.')
-
-    if chroot is not None:
-        root = chroot[0]
-        if os.path.exists(root):
-            shutil.rmtree(root)
 
     return report
 
@@ -206,7 +194,8 @@ def run_spec(tests, quiet=False):
             }
             print(lead, end='')
 
-        report[test_name] = run_test(test)
+        jailed = test_name.startswith('case_')
+        report[test_name] = run_test(test, jailed=jailed)
         passed = len(report[test_name]['errors']) == 0
 
         points = test.get('points')

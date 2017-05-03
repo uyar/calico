@@ -41,5 +41,5 @@
     points: 30
 
 - cleanup:
-    run: rm -f circle.o circle
+    run: rm -rf circle.o circle
     visible: no

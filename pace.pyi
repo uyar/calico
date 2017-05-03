@@ -15,7 +15,8 @@ def run_script(
 ) -> Tuple[int, List[str]]: ...
 
 def run_test(
-        test: Mapping[str, List[str]]
+        test: Mapping[str, List[str]],
+        jailed: Optional[bool] = ...
 ) -> Mapping[str, Union[str, List[str]]]: ...
 
 def run_spec(
