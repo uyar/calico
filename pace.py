@@ -29,6 +29,16 @@ MAX_LEN = 40
 _logger = logging.getLogger(__name__)
 
 
+def _get_comment(node, name, field):
+    try:
+        comment = node.ca.items[name][2].value[1:].strip()  # remove the hash from the start
+    except KeyError:
+        comment = None
+    if (comment is not None) and comment.startswith(field + ':'):
+        return comment[len(field)+1:].strip()
+    return None
+
+
 def parse_spec(source):
     """Parse a test specification.
 
@@ -45,8 +55,8 @@ def parse_spec(source):
     if config is None:
         raise AssertionError('No configuration')
 
-    tests = [(k, v) for c in config for k, v in c.items()]
     total_points = 0
+    tests = [(k, v) for c in config for k, v in c.items()]
     for test_name, test in tests:
         run = test.get('run')
         assert run is not None, test_name + ': no run command'
@@ -54,22 +64,20 @@ def parse_spec(source):
 
         script = test.get('script')
         if script is None:
-            test['script'] = [('expect', 'EOF', None)]
+            timeout = _get_comment(test, 'run', 'timeout')
+            assert (timeout is None) or timeout.isdigit(), \
+                test_name + ': timeout value must be integer'
+            script_item = ('expect', 'EOF', int(timeout) if timeout is not None else None)
+            test['script'] = [script_item]
         else:
             test['script'] = []
             for step in script:
                 action, data = [(k, v) for k, v in step.items()][0]
                 assert action in ('expect', 'send'), test_name + ': invalid action type'
                 assert isinstance(data, str), test_name + ': step data must be string'
-                timeout = None
-                try:
-                    full_comment = step.ca.items[action][2].value
-                    comment = full_comment[1:].strip()
-                    if comment.startswith('timeout:'):
-                        timeout = comment[8:].strip()
-                        assert timeout.isdigit(), test_name + ': timeout value must be integer'
-                except KeyError:
-                    pass
+                timeout = _get_comment(step, action, 'timeout')
+                assert (timeout is None) or timeout.isdigit(), \
+                    test_name + ': timeout value must be integer'
                 script_item = (action, data, int(timeout) if timeout is not None else None)
                 test['script'].append(script_item)
 

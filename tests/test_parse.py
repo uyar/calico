@@ -163,6 +163,25 @@ def test_case_script_action_with_string_timeout_value_should_raise_error():
     assert 'timeout value must be integer' in str(e)
 
 
+def test_case_run_with_timeout_should_generate_expect_eof_with_timeout():
+    source = """
+      - c1:
+          run: echo 1 # timeout: 5
+    """
+    config, _ = parse_spec(source)
+    assert config['c1']['script'] == [('expect', 'EOF', 5)]
+
+
+def test_case_run_with_non_numeric_timeout_value_should_raise_error():
+    source = """
+      - c1:
+          run: echo 1 # timeout: '5'
+    """
+    with raises(AssertionError) as e:
+        parse_spec(source)
+    assert 'timeout value must be integer' in str(e)
+
+
 def test_case_integer_return_value_should_be_ok():
     source = """
       - c1:
