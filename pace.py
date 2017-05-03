@@ -94,7 +94,7 @@ def parse_spec(source):
 def run_script(command, script):
     """Run a command and check whether it follows a script.
 
-    :sig: (str, List[str]) -> Tuple[int, List[str]]
+    :sig: (str, List[Tuple[str, str, Optional[int]]]) -> Tuple[int, List[str]]
     :param command: Command to run.
     :param script: Script to follow.
     :return: Exit status and errors.
@@ -104,11 +104,9 @@ def run_script(command, script):
     errors = []
     for action, data, timeout in script:
         if action == 'expect':
-            lhs, *rhs = [s.strip() for s in data[0].split('# timeout:')]
-            pattern = pexpect.EOF if lhs == 'EOF' else lhs[1:-1]    # remove the quotes
-            timeout = int(rhs[0].strip()) if len(rhs) > 0 else None
+            pattern = pexpect.EOF if data == 'EOF' else data[1:-1]  # remove the quotes
             try:
-                _logger.debug('  expecting (timeout: %2ss): %s', timeout, lhs)
+                _logger.debug('  expecting (timeout: %2ss): %s', timeout, data)
                 process.expect(pattern, timeout=timeout)
                 _logger.debug('  received                : %s', process.after)
             except (pexpect.TIMEOUT, pexpect.EOF):
@@ -118,7 +116,7 @@ def run_script(command, script):
                 errors.append('Expected output not received.')
                 break
         elif action == 'send':
-            user_input = data[0].strip()[1:-1]     # remove the quotes
+            user_input = data[0].strip()[1:-1]  # remove the quotes
             _logger.debug('  sending: %s', user_input)
             process.sendline(user_input)
     else:

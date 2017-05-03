@@ -9,7 +9,10 @@ def parse_spec(
         source: str
 ) -> Tuple[Mapping[str, Any], Union[int, float]]: ...
 
-def run_script(command: str, script: List[str]) -> Tuple[int, List[str]]: ...
+def run_script(
+        command: str,
+        script: List[Tuple[str, str, Optional[int]]]
+) -> Tuple[int, List[str]]: ...
 
 def run_test(
         test: Mapping[str, List[str]]
