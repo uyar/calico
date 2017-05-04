@@ -13,4 +13,4 @@ History
 1.0a1 (unreleased)
 ------------------
 
-* First usable version (under the name "pace").
+* First usable version.

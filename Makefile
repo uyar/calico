@@ -28,7 +28,7 @@ clean-docs:
 	make -C docs clean
 
 lint:
-	flake8 clioc.py tests
+	flake8 calico.py tests
 
 test:
 	py.test
@@ -37,7 +37,7 @@ test-all:
 	tox
 
 coverage:
-	py.test --cov-report term-missing --cov=clioc tests
+	py.test --cov-report term-missing --cov=calico tests
 
 docs:
 	$(MAKE) -C docs clean

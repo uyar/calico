@@ -1,6 +1,6 @@
 from pytest import raises
 
-from clioc import parse_spec
+from calico import parse_spec
 
 
 def test_empty_spec_should_raise_error():

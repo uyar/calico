@@ -1,4 +1,4 @@
-from clioc import run_script
+from calico import run_script
 
 
 def test_script_expect_eof_should_be_ok():

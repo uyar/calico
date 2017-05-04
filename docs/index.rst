@@ -1,5 +1,5 @@
-clioc
-=====
+Calico
+======
 
 .. include:: ../README.rst
 

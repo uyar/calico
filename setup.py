@@ -8,11 +8,11 @@ with open('HISTORY.rst') as history_file:
     history = history_file.read().replace('.. :changelog:', '')
 
 setup(
-    name='clioc',
+    name='calico',
     version='1.0a2',
-    description='Command-line program I/O checker.',
+    description='I/O checker for command-line programs.',
     long_description=readme + '\n\n' + history,
-    url='https://bitbucket.org/uyar/clioc',
+    url='https://bitbucket.org/uyar/calico',
     author='H. Turgut Uyar',
     author_email='uyar@itu.edu.tr',
     license='GPL',
@@ -27,7 +27,7 @@ setup(
         'Topic :: Utilities'
     ],
     keywords='cli testing',
-    py_modules=['clioc'],
+    py_modules=['calico'],
     install_requires=['pexpect', 'ruamel.yaml'],
     extras_require={
         'dev': [
@@ -45,6 +45,6 @@ setup(
     },
     entry_points="""
         [console_scripts]
-        clioc=clioc:main
+        calico=calico:main
     """
 )

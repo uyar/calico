@@ -6,7 +6,7 @@ Vagrant.configure("2") do |config|
 
     config.vm.provider "virtualbox" do |vb|
         # vb.customize ["modifyvm", :id, "--memory", "1024"]
-        vb.customize ["modifyvm", :id, "--name", "clioc"]
+        vb.customize ["modifyvm", :id, "--name", "calico"]
     end
 
     config.vm.provision "shell",
@@ -22,6 +22,6 @@ Vagrant.configure("2") do |config|
         inline: "pip3 install -U pip"
 
     config.vm.provision "shell",
-        inline: "pip3 install -U clioc"
+        inline: "pip3 install -U calico"
 
 end
