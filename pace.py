@@ -20,10 +20,12 @@ from ruamel import yaml
 import logging
 import os
 import pexpect
+import shutil
 import sys
 
 
 MAX_LEN = 40
+SUPPORTS_JAIL = shutil.which('fakechroot') is not None
 
 _logger = logging.getLogger(__name__)
 
@@ -197,7 +199,7 @@ def run_spec(tests, quiet=False):
             }
             print(lead, end='')
 
-        jailed = test_name.startswith('case_')
+        jailed = SUPPORTS_JAIL and test_name.startswith('case_')
         report[test_name] = run_test(test, jailed=jailed)
         passed = len(report[test_name]['errors']) == 0
 
