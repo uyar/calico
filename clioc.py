@@ -94,13 +94,11 @@ def parse_spec(source):
 
         blocker = test.get('blocker')
         if blocker is not None:
-            assert blocker in ('yes', 'no'), test_name + ': blocker value must be yes or no'
-            test['blocker'] = blocker == 'yes'
+            assert isinstance(blocker, bool), test_name + ': blocker must be true or false'
 
         visible = test.get('visible')
         if visible is not None:
-            assert visible in ('yes', 'no'), test_name + ': visibility value must be yes or no'
-            test['visible'] = visible == 'yes'
+            assert isinstance(visible, bool), test_name + ': visible must be true or false'
 
     return OrderedDict(tests), total_points
 

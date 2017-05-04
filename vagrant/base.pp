@@ -12,6 +12,12 @@ class base {
   package { "python3-pip":
     ensure => present,
   }
+  package { "python3-dev":
+    ensure => present,
+  }
+  package { "libyaml-dev":
+    ensure => present,
+  }
   package { "fakechroot":
     ensure => present,
   }

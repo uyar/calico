@@ -249,7 +249,7 @@ def test_case_blocker_set_should_be_ok():
     source = """
       - c1:
           run: echo 1
-          blocker: yes
+          blocker: true
     """
     config, _ = parse_spec(source)
     assert config['c1']['blocker']
@@ -259,7 +259,7 @@ def test_case_blocker_unset_should_be_ok():
     source = """
       - c1:
           run: echo 1
-          blocker: no
+          blocker: false
     """
     config, _ = parse_spec(source)
     assert not config['c1']['blocker']
@@ -273,14 +273,14 @@ def test_case_non_boolean_blocker_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert 'blocker value must be yes or no' in str(e)
+    assert 'blocker must be true or false' in str(e)
 
 
 def test_case_visible_set_should_be_ok():
     source = """
       - c1:
           run: echo 1
-          visible: yes
+          visible: true
     """
     config, _ = parse_spec(source)
     assert config['c1']['visible']
@@ -290,7 +290,7 @@ def test_case_visible_unset_should_be_ok():
     source = """
       - c1:
           run: echo 1
-          visible: no
+          visible: false
     """
     config, _ = parse_spec(source)
     assert not config['c1']['visible']
@@ -304,7 +304,7 @@ def test_case_non_boolean_visibility_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert 'visibility value must be yes or no' in str(e)
+    assert 'visible must be true or false' in str(e)
 
 
 def test_case_order_should_be_preserved():
