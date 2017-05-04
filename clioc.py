@@ -120,26 +120,27 @@ def run_script(command, script):
         if action == 'expect':
             pattern = pexpect.EOF if data == '_EOF_' else data
             try:
-                _logger.debug('  expecting (timeout: %2ss): %s', timeout, data)
+                _logger.debug('  expecting%s: %s',
+                              ' (%ss)' % timeout if timeout is not None else '', data)
                 process.expect(pattern, timeout=timeout)
                 received = '_EOF_' if '.EOF' in repr(process.after) else process.after
-                _logger.debug('  received                : %s', received)
+                _logger.debug('  received: %s', received)
             except pexpect.EOF:
                 received = '_EOF_' if '.EOF' in repr(process.before) else process.before
-                _logger.debug('received: %s', received)
+                _logger.debug('  received: %s', received)
                 process.close(force=True)
                 _logger.debug('FAILED: Expected output not received.')
                 errors.append('Expected output not received.')
                 break
             except pexpect.TIMEOUT:
                 received = '_EOF_' if '.EOF' in repr(process.before) else process.before
-                _logger.debug('received: %s', received)
+                _logger.debug('  received: %s', received)
                 process.close(force=True)
                 _logger.debug('FAILED: Timeout exceeded.')
                 errors.append('Timeout exceeded.')
                 break
         elif action == 'send':
-            _logger.debug('  sending                 : %s', data)
+            _logger.debug('  sending: %s', data)
             process.sendline(data)
     else:
         process.close(force=True)
@@ -212,7 +213,7 @@ def run_spec(tests, quiet=False):
             report[test_name]['points'] = points if passed else 0
             earned_points += report[test_name]['points']
             if (not quiet) and visible:
-                tail = '%(scored)3d / %(over)3d' % {
+                tail = '%(scored)d / %(over)d' % {
                     'scored': report[test_name]['points'],
                     'over': points
                 }
@@ -291,7 +292,7 @@ def main(argv=None):
 
         if not arguments.validate:
             report = run_spec(tests, quiet=arguments.quiet)
-            summary = 'Grade: %(scored)3d / %(over)3d' % {
+            summary = 'Grade: %(scored)d / %(over)d' % {
                 'scored': report['points'],
                 'over': total_points
             }
