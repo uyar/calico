@@ -1,4 +1,4 @@
-from pace import run_script
+from clioc import run_script
 
 
 def test_script_expect_eof_should_be_ok():

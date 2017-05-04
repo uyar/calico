@@ -2,11 +2,11 @@ from setuptools import setup
 
 
 setup(
-    name='pace',
+    name='clioc',
     version='1.0a2',
     description='Programming assignment checker and evaluator.',
     long_description='',
-    url='https://bitbucket.org/uyar/pace',
+    url='https://bitbucket.org/uyar/clioc',
     author='H. Turgut Uyar',
     author_email='uyar@itu.edu.tr',
     license='GPL',
@@ -21,7 +21,7 @@ setup(
         'Topic :: Utilities'
     ],
     keywords='cli testing programming assignment',
-    py_modules=['pace'],
+    py_modules=['clioc'],
     install_requires=['pexpect', 'ruamel.yaml'],
     extras_require={
         'dev': [
@@ -39,6 +39,6 @@ setup(
     },
     entry_points="""
         [console_scripts]
-        pace=pace:main
+        clioc=clioc:main
     """
 )

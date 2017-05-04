@@ -7,7 +7,7 @@ Vagrant.configure("2") do |config|
 
     config.vm.provider "virtualbox" do |vb|
         # vb.customize ["modifyvm", :id, "--memory", "1024"]
-        vb.customize ["modifyvm", :id, "--name", "pace"]
+        vb.customize ["modifyvm", :id, "--name", "clioc"]
     end
 
     # Run apt-get update as a separate step in order to avoid
@@ -25,6 +25,6 @@ Vagrant.configure("2") do |config|
 
     config.vm.provision :puppet do |puppet|
         puppet.manifests_path = "vagrant"
-        puppet.manifest_file  = "pace.pp"
+        puppet.manifest_file  = "clioc.pp"
     end
 end

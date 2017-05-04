@@ -149,7 +149,7 @@ def run_script(command, script):
 def run_test(test, jailed=False):
     """Run a test and produce a report.
 
-    :sig: (Mapping[str, Any], Optional[bool]) -> Mapping[str, Any]
+    :sig: (Mapping[str, List[str]], Optional[bool]) -> Mapping[str, Union[str, List[str]]]
     :param test: Test to run.
     :param jailed: Whether to jail the command to the current directory.
     :return: Result report of the test.
