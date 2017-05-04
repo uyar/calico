@@ -107,3 +107,55 @@ again::
 
    compile .................................. 0 / 10
    Grade: 0 / 30
+
+Interacting with the program
+----------------------------
+
+If the compile and link stages are successful, then we'll have an executable
+(in the file :file:`circle` as a result of the link command) that we can run
+for I/O checking. So let's write a stage for testing if it produces the correct
+result for a simple case:
+
+.. code-block:: yaml
+
+   - compile:
+       run: gcc -c circle.c -o circle.o
+       blocker: true
+
+   - link:
+       run: gcc circle.o -o circle
+       blocker: true
+
+   - case_1:
+       run: ./circle
+       script:
+         - expect: 'Enter radius(.*?):\s+'
+         - send: '1'
+         - expect: 'Area: 3.14(\d*)\r\n'
+         - expect: _EOF_
+       return: 0
+       points: 10
+
+First of all, note the changes in the compile and link stages. Both of these
+stages are blockers and we assign no points to them. To describe
+the interaction with a program, we supply a script, which is a sequence of
+expect/send operations. An expect operations expects the given output
+from the program and a send operation provides a user input to the program.
+Expected output is given as a regular expression and user input is a simple
+string.
+
+In the example, the script first expects a prompt for entering the radius,
+then sends the value 1 (as if the user typed it in), then expects the area
+message as printed by the program. Finally it expects to program to terminate
+[#eof]_ without requiring further user input. Running clioc now prints::
+
+   compile .................................. PASSED
+   link ..................................... PASSED
+   case_1 ................................... 10 / 10
+   Grade: 10 / 10
+
+
+.. [#eof]
+
+   _EOF_ is a marker for end-of-file and expecting _EOF_ means
+   expecting program termination.
