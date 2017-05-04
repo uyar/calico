@@ -12,6 +12,9 @@ class base {
   package { "python3-pip":
     ensure => present,
   }
+  package { "fakechroot":
+    ensure => present,
+  }
 
   # used for creating a PuTTy-compatible key file
   package { "putty-tools":
