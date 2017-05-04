@@ -149,9 +149,9 @@ def run_test(test, jailed=False):
 
     :sig: (Mapping[str, List[str]], Optional[bool]) -> Mapping[str, Union[str, List[str]]]
     :param test: Test to run.
+    :param jailed: Whether to jail the command to the current directory.
     :return: Result report of the test.
     """
-    global FAKEROOT
     report = {'errors': []}
 
     command = test['run']
