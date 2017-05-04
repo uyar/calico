@@ -9,7 +9,7 @@ import pace
 
 base_dir = os.path.dirname(__file__)
 demo_dir = os.path.join(base_dir, '..', 'demo')
-circle_spec_file = os.path.join(demo_dir, 'circle.t')
+circle_spec_file = os.path.join(demo_dir, 'circle.yaml')
 
 
 def test_help_should_print_usage_and_exit(capsys):
