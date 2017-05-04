@@ -278,8 +278,6 @@ def main(argv=None):
     parser = _get_parser(prog=argv[0])
     arguments = parser.parse_args(argv[1:])
 
-    _setup_logging(arguments.debug, arguments.log)
-
     try:
         spec_filename = os.path.abspath(arguments.spec)
         with open(spec_filename) as f:
@@ -287,6 +285,8 @@ def main(argv=None):
 
         if arguments.directory is not None:
             os.chdir(arguments.directory)
+
+        _setup_logging(arguments.debug, arguments.log)
 
         tests, total_points = parse_spec(content)
 
