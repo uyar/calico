@@ -44,10 +44,5 @@ docs:
 	$(MAKE) -C docs html
 
 release: clean
-	python setup.py sdist upload
-	python setup.py bdist_wheel upload
-
-sdist: clean
 	python setup.py sdist
-	python setup.py bdist_wheel upload
-	ls -l dist
+	twine upload dist/*

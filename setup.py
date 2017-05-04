@@ -1,11 +1,17 @@
 from setuptools import setup
 
 
+with open('README.rst') as readme_file:
+    readme = readme_file.read()
+
+with open('HISTORY.rst') as history_file:
+    history = history_file.read().replace('.. :changelog:', '')
+
 setup(
     name='clioc',
     version='1.0a2',
-    description='Programming assignment checker and evaluator.',
-    long_description='',
+    description='Command-line program I/O checker.',
+    long_description=readme + '\n\n' + history,
     url='https://bitbucket.org/uyar/clioc',
     author='H. Turgut Uyar',
     author_email='uyar@itu.edu.tr',
@@ -20,7 +26,7 @@ setup(
         'Topic :: Education :: Testing',
         'Topic :: Utilities'
     ],
-    keywords='cli testing programming assignment',
+    keywords='cli testing',
     py_modules=['clioc'],
     install_requires=['pexpect', 'ruamel.yaml'],
     extras_require={

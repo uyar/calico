@@ -12,6 +12,6 @@ syntax: glob
 _build/
 dist/
 
-demo
+demo/
 
 .idea/

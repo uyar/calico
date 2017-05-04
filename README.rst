@@ -1,1 +1,2 @@
-Pace is a utility for checking and evaluating programming assignments.
+Clioc is a utility for checking command-line programs whether they exhibit
+expected behavior.
