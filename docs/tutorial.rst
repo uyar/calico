@@ -36,8 +36,8 @@ specification:
        run: gcc -c circle.c -o circle.o
        return: 0
 
-This file states that there is only one stage. The name of the stage is
-"compile". The command is to run the source code through the gcc compiler,
+This specification states that there is only one stage. The name of the stage
+is "compile". The command is to run the source code through the gcc compiler,
 and the compiler should exit with the status code 0 (success).
 
 Save this specification in the file :file:`circle.yaml` in the same
@@ -51,9 +51,10 @@ that the C file has to be in the current directory. Now, if you run
 This stage will create a :file:`circle.o` file in the current directory
 as a result of the run command.
 
-If we assign points to a stage, Calico will print those points in its report
-if the stage passes. Also note that we can leave out the ``return: 0``
-clause because successful completion is the default desired outcome:
+If we want to do grading, we can assign points to stages. If a stage with
+points passes, Calico will print those points in the report. Also note that
+we can leave out the ``return: 0`` clause because successful completion
+is the default desired outcome:
 
 .. code-block:: yaml
 
@@ -69,7 +70,7 @@ In this case, the output will be::
 Blockers
 --------
 
-As our next step, let's test whether the compiled object file can be linked.
+As our next step, let's check whether the compiled object file can be linked.
 We add a second stage to our specification:
 
 .. code-block:: yaml
@@ -82,14 +83,16 @@ We add a second stage to our specification:
        run: gcc circle.o -o circle
        points: 20
 
-The stages are executed in order and the output becomes::
+The stages are executed in order and the output is::
 
    compile .................................. 10 / 10
    link ..................................... 20 / 20
    Grade: 30 / 30
 
-But since it doesn't make sense to advance to the link stage if the compile
-stage was unsuccessful, we can set the compile stage as a blocker:
+However, it doesn't make sense to try to the link the object file
+if the source file could not be compiled and the object file was not generated.
+If a stage is marked as a blocker, all subsequent stages will be cancelled
+if that stage fails.
 
 .. code-block:: yaml
 
@@ -102,19 +105,21 @@ stage was unsuccessful, we can set the compile stage as a blocker:
        run: gcc circle.o -o circle
        points: 20
 
-Delete the semicolon at the end of the first printf statement and run Calico
-again::
+If you introduce an error into the C code and run Calico again, you'll see::
 
    compile .................................. 0 / 10
    Grade: 0 / 30
 
+As seen in the example, Calico will count the points of failed and cancelled
+stages in the total points calculation.
+
 Interacting with the program
 ----------------------------
 
-If the compile and link stages are successful, then we'll have an executable
+If the compile and link stages are successful, we'll have an executable
 (in the file :file:`circle` as a result of the link command) that we can run
-for I/O checking. So let's write a stage for testing if it produces the correct
-result for a simple case:
+for I/O checking. So let's write a stage to test whether it produces
+the correct output for a simple case:
 
 .. code-block:: yaml
 
@@ -137,23 +142,96 @@ result for a simple case:
        points: 10
 
 First of all, note the changes in the compile and link stages. Both of these
-stages are blockers and we assign no points to them. To describe
-the interaction with a program, we supply a script, which is a sequence of
-expect/send operations. An expect operations expects the given output
-from the program and a send operation provides a user input to the program.
-Expected output is given as a regular expression and user input is a simple
-string.
+stages are blockers and we have decided not to assign points to them.
+To describe the interaction with a program, we supply a script,
+which is a sequence of expect/send operations. An expect operation expects
+the given output from the program and a send operation sends a user input
+to the program. Expected output is given as a regular expression and user input
+is given as a simple string.
 
 In the example, the script first expects a prompt for entering the radius,
-then sends the value 1 (as if the user typed it in), then expects the area
-message as printed by the program. Finally it expects to program to terminate
-[#eof]_ without requiring further user input. Running Calico now prints::
+then sends the string '1' (as if the user typed it in). Next, it expects
+that the program prints a message that contains the correct area for that
+input. Finally it expects to program to terminate without requiring further
+user input. [#eof]_ Running Calico now prints::
 
    compile .................................. PASSED
    link ..................................... PASSED
    case_1 ................................... 10 / 10
    Grade: 10 / 10
 
+A stage that doesn't have a script is assumed to be non-interactive
+and it consists of a single step where it expects the program to terminate.
+
+Debug mode
+----------
+
+Running in debug mode will show you what's going on between Calico and
+the tested program. Type the command ``calico --debug circle.yaml``
+and you get the following output::
+
+   starting test compile
+   running command: gcc -c circle.c -o circle.o
+     expecting: _EOF_
+     received: _EOF_
+   compile .................................. PASSED
+   starting test link
+   running command: gcc circle.o -o circle
+     expecting: _EOF_
+     received: _EOF_
+   link ..................................... PASSED
+   starting test case_1
+   running command: ./circle
+     expecting: Enter radius(.*?):\s+
+     received: b'Enter radius of circle: '
+     sending: 1
+     expecting: Area: 3.14(\d*)\r\n
+     received: b'Area: 3.141590\r\n'
+     expecting: _EOF_
+     received: _EOF_
+   case_1 ................................... 10 / 10
+   Grade: 10 / 10
+
+Timeouts
+--------
+
+It's possible that the tested program goes into an infinite loop or takes
+too long to respond. For such cases, we would like to limit the amount of time
+Calico should wait. Expect steps can have timeout comments that make this
+possible:
+
+.. code-block:: yaml
+
+   - case_1:
+       run: ./circle
+       script:
+         - expect: 'Enter radius(.*?):\s+'
+         - send: '1'
+         - expect: 'Area: 3.14(\d*)\r\n'    # timeout: 2
+         - expect: _EOF_
+       return: 0
+       points: 10
+
+In this example, after sending the user input, Calico will wait for 2 seconds
+for the program to print the area. If the program doesn't respond in that time,
+the stage will fail. To test it, add a sleep statement to the C code and
+run Calico in debug mode::
+
+   starting test case_1
+   running command: ./circle
+     expecting: Enter radius(.*?):\s+
+     received: b'Enter radius of circle: '
+     sending: 1
+     expecting (2s): Area: 3.14(\d*)\r\n
+     received: b''
+   FAILED: Timeout exceeded.
+   case_1 ................................... 0 / 10
+
+Run commands can also have timeout comments if the stage doesn't have a script.
+In that case Calico will expect the program to terminate within that time
+frame. If the stage has a script, the timeout comment for the run command
+will be ignored. Timeout comments for other items such as send steps will also
+have no effect.
 
 .. [#eof]
 
