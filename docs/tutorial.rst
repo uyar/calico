@@ -163,6 +163,43 @@ user input. [#eof]_ Running Calico now prints::
 A stage that doesn't have a script is assumed to be non-interactive
 and it consists of a single step where it expects the program to terminate.
 
+Say that if the user types in a negative radius value we want to program
+to exit with a failure code. For that, we can use the return value option:
+
+.. code-block:: yaml
+
+   - case_negative:
+       run: ./circle
+       script:
+         - expect: 'Enter radius(.*?):\s+'
+         - send: '-1'
+         - expect: _EOF_
+       return: 1
+       points: 30
+
+To make that test pass, the C file can be modified as follows:
+
+.. code-block:: c
+
+   #include <stdio.h>
+   #include <stdlib.h>
+
+   int main(int argc, char* argv[]) {
+       float radius, area;
+
+       printf("Enter radius of circle: ");
+       scanf("%f", &radius);
+
+       if (radius < 0) {
+           fprintf(stderr, "Negative radius values are not allowed.\n");
+           exit(1);
+       }
+
+       area = 3.14159 * radius * radius;
+       printf("Area: %f\n", area);
+       return 0;
+   }
+
 Debug mode
 ----------
 
@@ -207,12 +244,12 @@ possible:
        script:
          - expect: 'Enter radius(.*?):\s+'
          - send: '1'
-         - expect: 'Area: 3.14(\d*)\r\n'    # timeout: 2
+         - expect: 'Area: 3.14(\d*)\r\n'      # timeout: 2
          - expect: _EOF_
        return: 0
        points: 10
 
-In this example, after sending the user input, Calico will wait for 2 seconds
+In this example, after sending the user input, Calico will wait 2 seconds
 for the program to print the area. If the program doesn't respond in that time,
 the stage will fail. To test it, add a sleep statement to the C code and
 run Calico in debug mode::
@@ -230,8 +267,45 @@ run Calico in debug mode::
 Run commands can also have timeout comments if the stage doesn't have a script.
 In that case Calico will expect the program to terminate within that time
 frame. If the stage has a script, the timeout comment for the run command
-will be ignored. Timeout comments for other items such as send steps will also
+will be ignored. Timeout comments for other items such as send steps also
 have no effect.
+
+Hidden stages
+-------------
+
+To make sure that there are no object and executable files left over from
+earlier runs, let's add an initialization stage to delete these generated
+files. But we don't want this stage to be included in the report,
+so we mark it as not visible:
+
+.. code-block:: yaml
+
+   - init:
+       run: rm -f circle.o circle
+       visible: false
+
+   - compile:
+       ...
+
+Running Calico will leave out the "init" stage::
+
+   compile .................................. PASSED
+   link ..................................... PASSED
+   case_1 ................................... 10 / 10
+   case_negative ............................ 30 / 30
+   Grade: 40 / 40
+
+Running in debug mode will include the details about the hidden stages.
+
+Jailing tests
+-------------
+
+To prevent the tested program from damaging the system, Calico runs
+the stages in a restricted environment, if possible. For this to work,
+the "fakechroot" command has to be in the path of executables. If this command
+is available, stages that have names starting with "case\_" will be jailed
+to the directory in which they are run and cannot access files in upper
+directories.
 
 .. [#eof]
 

@@ -1,7 +1,6 @@
 - init:
     run: rm -f circle.o circle
     visible: false
-    blocker: true
 
 - compile:
     run: gcc -c circle.c -o circle.o     # timeout: 2
