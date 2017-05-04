@@ -11,3 +11,10 @@ clioc has been tested with Python 3.4. You can install the latest version
 from PyPI::
 
    pip install clioc
+
+clioc uses `pexpect`_ for interacting with the program it is checking.
+The file that specifies the inputs and outputs for the checks
+is in `YAML`_ format.
+
+.. _pexpect: https://pexpect.readthedocs.io/
+.. _YAML: http://www.yaml.org/
