@@ -2,29 +2,26 @@
 # vi: set ft=ruby :
 
 Vagrant.configure("2") do |config|
-    config.vm.box = "trusty32"
-    config.vm.box_url = "https://cloud-images.ubuntu.com/vagrant/trusty/current/trusty-server-cloudimg-i386-vagrant-disk1.box"
+    config.vm.box = "bento/ubuntu-16.10-i386"
 
     config.vm.provider "virtualbox" do |vb|
         # vb.customize ["modifyvm", :id, "--memory", "1024"]
         vb.customize ["modifyvm", :id, "--name", "clioc"]
     end
 
-    # Run apt-get update as a separate step in order to avoid
-    # package install errors
-    config.vm.provision :puppet do |puppet|
-        puppet.manifests_path = "vagrant"
-        puppet.manifest_file  = "aptgetupdate.pp"
-    end
+    config.vm.provision "shell",
+        inline: "apt update -y"
 
-    # ensure we have the packages we need
-    config.vm.provision :puppet do |puppet|
-        puppet.manifests_path = "vagrant"
-        puppet.manifest_file  = "base.pp"
-    end
+    config.vm.provision "shell",
+        inline: "apt install -y g++ libyaml-dev mercurial fakechroot"
 
-    config.vm.provision :puppet do |puppet|
-        puppet.manifests_path = "vagrant"
-        puppet.manifest_file  = "clioc.pp"
-    end
+    config.vm.provision "shell",
+        inline: "apt install -y python3 python3-dev python3-pip"
+
+    config.vm.provision "shell",
+        inline: "pip3 install -U pip"
+
+    config.vm.provision "shell",
+        inline: "pip3 install -U clioc"
+
 end

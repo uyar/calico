@@ -1,15 +1,15 @@
 - init:
     run: rm -f circle.o circle
-    visible: false
-    blocker: true
+    visible: no
+    blocker: yes
 
 - compile:
     run: gcc -c circle.c -o circle.o     # timeout: 2
-    blocker: true
+    blocker: yes
 
 - link:
     run: gcc circle.o -o circle          # timeout: 2
-    blocker: true
+    blocker: yes
 
 - case_1:
     run: ./circle
@@ -42,4 +42,4 @@
 
 - cleanup:
     run: rm -rf circle.o circle
-    visible: false
+    visible: no
