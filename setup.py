@@ -20,7 +20,7 @@ setup(
         'Development Status :: 3 - Alpha',
         'Environment :: Console',
         'Intended Audience :: Education',
-        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
         'Operating System :: POSIX :: Linux',
         'Programming Language :: Python :: 3.4',
         'Topic :: Education :: Testing',
