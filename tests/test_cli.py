@@ -1,11 +1,9 @@
-from pytest import raises
-
+import os
 from unittest.mock import mock_open, patch
 
-import os
+from pytest import raises
 
 import calico
-
 
 base_dir = os.path.dirname(__file__)
 circle_spec_file = os.path.join(base_dir, 'circle.yaml')

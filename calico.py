@@ -13,16 +13,15 @@
 # You should have received a copy of the GNU General Public License
 # along with Calico.  If not, see <http://www.gnu.org/licenses/>.
 
-from argparse import ArgumentParser
-from collections import OrderedDict
-from ruamel import yaml
-
 import logging
 import os
-import pexpect
 import shutil
 import sys
+from argparse import ArgumentParser
+from collections import OrderedDict
 
+import pexpect
+from ruamel import yaml
 
 MAX_LEN = 40
 SUPPORTS_JAIL = shutil.which('fakechroot') is not None
