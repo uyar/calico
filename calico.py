@@ -145,7 +145,7 @@ def run_script(command, script):
     return process.exitstatus, errors
 
 
-def run_test(test, jailed=False):
+def run_test(test, *, jailed=False):
     """Run a test and produce a report.
 
     :sig: (Mapping[str, List[str]], Optional[bool]) -> Mapping[str, Union[str, List[str]]]
@@ -175,7 +175,7 @@ def run_test(test, jailed=False):
     return report
 
 
-def run_spec(tests, quiet=False):
+def run_spec(tests, *, quiet=False):
     """Run a test suite specification.
 
     :sig: (Mapping[str, Any], bool) -> Mapping[str, Any]
@@ -245,7 +245,7 @@ def make_parser(prog):
     return parser
 
 
-def _setup_logging(debug, log):
+def setup_logging(*, debug, log):
     """Set up logging levels and handlers.
 
     :param debug: Whether to activate debugging.
@@ -286,7 +286,7 @@ def main(argv=None):
         if arguments.directory is not None:
             os.chdir(arguments.directory)
 
-        _setup_logging(arguments.debug, arguments.log)
+        setup_logging(debug=arguments.debug, log=arguments.log)
 
         tests, total_points = parse_spec(content)
 

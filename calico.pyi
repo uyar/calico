@@ -14,11 +14,13 @@ def run_script(
 
 def run_test(
         test: Mapping[str, List[str]],
+        *,
         jailed: Optional[bool] = ...
 ) -> Mapping[str, Union[str, List[str]]]: ...
 
 def run_spec(
         tests: Mapping[str, Any],
+        *,
         quiet: bool = ...
 ) -> Mapping[str, Any]: ...
 
