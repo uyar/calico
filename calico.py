@@ -236,7 +236,6 @@ def make_parser(prog):
     :param prog: Name of program.
     """
     parser = ArgumentParser(prog=prog)
-
     parser.add_argument('--version', action='version', version='%(prog)s 1.0a2')
 
     parser.add_argument('spec', help='test specifications file')
