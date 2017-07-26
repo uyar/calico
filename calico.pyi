@@ -2,8 +2,6 @@
 
 from typing import Any, List, Mapping, Optional, Tuple, Union
 
-from argparse import ArgumentParser
-
 
 def parse_spec(
         source: str
@@ -23,9 +21,5 @@ def run_spec(
         tests: Mapping[str, Any],
         quiet: bool = ...
 ) -> Mapping[str, Any]: ...
-
-def make_parser(prog: str) -> ArgumentParser: ...
-
-def _setup_logging(debug: bool, log: bool) -> None: ...
 
 def main(argv: Optional[List[str]] = ...) -> None: ...

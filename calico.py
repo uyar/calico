@@ -228,7 +228,6 @@ def run_spec(tests, quiet=False):
 def make_parser(prog):
     """Build a parser for command-line arguments.
 
-    :sig: (str) -> ArgumentParser
     :param prog: Name of program.
     """
     parser = ArgumentParser(prog=prog)
@@ -249,7 +248,6 @@ def make_parser(prog):
 def _setup_logging(debug, log):
     """Set up logging levels and handlers.
 
-    :sig: (bool, bool) -> None
     :param debug: Whether to activate debugging.
     :param log: Whether to activate logging.
     """
