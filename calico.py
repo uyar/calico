@@ -21,7 +21,6 @@ from argparse import ArgumentParser
 from collections import OrderedDict
 
 import pexpect
-from pkg_resources import get_distribution
 from ruamel import yaml
 
 MAX_LEN = 40
@@ -232,8 +231,7 @@ def make_parser(prog):
     """
     parser = ArgumentParser(prog=prog)
 
-    parser.add_argument('--version', action='version',
-                        version='%(prog)s ' + get_distribution('calico').version)
+    parser.add_argument('--version', action='version', version='%(prog)s 1.0a2')
 
     parser.add_argument('spec', help='test specifications file')
     parser.add_argument('-d', '--directory', help='change to directory before doing anything')
