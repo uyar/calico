@@ -30,7 +30,7 @@ SUPPORTS_JAIL = shutil.which('fakechroot') is not None
 _logger = logging.getLogger(__name__)
 
 
-def _get_comment(node, name, field):
+def _get_yaml_comment(node, name, field):
     try:
         comment = node.ca.items[name][2].value[1:].strip()  # remove the hash from the start
     except KeyError:
@@ -65,7 +65,7 @@ def parse_spec(source):
 
         script = test.get('script')
         if script is None:
-            timeout = _get_comment(test, 'run', 'timeout')
+            timeout = _get_yaml_comment(test, 'run', 'timeout')
             assert (timeout is None) or timeout.isdigit(), \
                 test_name + ': timeout value must be integer'
             script_item = ('expect', '_EOF_', int(timeout) if timeout is not None else None)
@@ -76,7 +76,7 @@ def parse_spec(source):
                 action, data = [(k, v) for k, v in step.items()][0]
                 assert action in ('expect', 'send'), test_name + ': invalid action type'
                 assert isinstance(data, str), test_name + ': step data must be string'
-                timeout = _get_comment(step, action, 'timeout')
+                timeout = _get_yaml_comment(step, action, 'timeout')
                 assert (timeout is None) or timeout.isdigit(), \
                     test_name + ': timeout value must be integer'
                 script_item = (action, data, int(timeout) if timeout is not None else None)
