@@ -1,4 +1,4 @@
-.PHONY: help clean clean-pyc clean-build list test test-all coverage docs release sdist
+.PHONY: help clean clean-pyc clean-build lint test test-all coverage docs release sdist
 
 help:
 	@echo "clean-build - remove build artifacts"
@@ -28,7 +28,7 @@ clean-docs:
 	make -C docs clean
 
 lint:
-	flake8 calico.py tests
+	python setup.py flake8
 
 test:
 	py.test

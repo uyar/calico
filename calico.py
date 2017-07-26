@@ -13,6 +13,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Calico.  If not, see <http://www.gnu.org/licenses/>.
 
+"""Calico is a utility for checking command-line programs.
+
+For documentation, please refer to: https://calico.readthedocs.io/
+"""
+
 import logging
 import os
 import shutil
@@ -22,6 +27,7 @@ from collections import OrderedDict
 
 import pexpect
 from ruamel import yaml
+
 
 MAX_LEN = 40
 SUPPORTS_JAIL = shutil.which('fakechroot') is not None

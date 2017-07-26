@@ -1,3 +1,5 @@
+"""The module for installing Calico."""
+
 from setuptools import setup
 
 
@@ -32,7 +34,10 @@ setup(
     extras_require={
         'dev': [
             'flake8',
-            'mypy'
+            'flake8-isort',
+            'flake8-docstrings',
+            'wheel',
+            'twine'
         ],
         'doc': [
             'sphinx',
