@@ -1,3 +1,5 @@
+Copyright (C) 2016-2017 H. Turgut Uyar <uyar@itu.edu.tr>
+
 Calico is a utility for checking command-line programs in terms of their
 input and output. It checks whether a program generates the correct output
 when given some inputs. It was developed to evaluate simple programming
