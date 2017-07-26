@@ -21,6 +21,7 @@ from argparse import ArgumentParser
 from collections import OrderedDict
 
 import pexpect
+from pkg_resources import get_distribution
 from ruamel import yaml
 
 MAX_LEN = 40
@@ -225,12 +226,16 @@ def run_spec(tests, quiet=False):
 
 
 def _get_parser(prog):
-    """Get a parser for command-line arguments.
+    """Build a parser for command-line arguments.
 
     :sig: (str) -> ArgumentParser
     :param prog: Name of program.
     """
     parser = ArgumentParser(prog=prog)
+
+    parser.add_argument('--version', action='version',
+                        version='%(prog)s ' + get_distribution('calico').version)
+
     parser.add_argument('spec', help='test specifications file')
     parser.add_argument('-d', '--directory', help='change to directory before doing anything')
     parser.add_argument('--validate', action='store_true',
@@ -272,7 +277,7 @@ def main(argv=None):
     :param argv: Command line arguments.
     """
     argv = argv if argv is not None else sys.argv
-    parser = _get_parser(prog=argv[0])
+    parser = _get_parser(prog='calico')
     arguments = parser.parse_args(argv[1:])
 
     try:

@@ -3,6 +3,8 @@ from unittest.mock import mock_open, patch
 
 from pytest import raises
 
+from pkg_resources import get_distribution
+
 import calico
 
 base_dir = os.path.dirname(__file__)
@@ -14,6 +16,13 @@ def test_help_should_print_usage_and_exit(capsys):
         calico.main(argv=['calico', '--help'])
     out, err = capsys.readouterr()
     assert out.startswith('usage: ')
+
+
+def test_cli_version_should_print_version_number_and_exit(capsys):
+    with raises(SystemExit):
+        calico.main(argv=['calico', '--version'])
+    out, err = capsys.readouterr()
+    assert 'calico ' + get_distribution('calico').version + '\n' in {out, err}
 
 
 def test_no_spec_file_should_print_usage_and_exit(capsys):
