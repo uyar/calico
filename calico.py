@@ -225,7 +225,7 @@ def run_spec(tests, quiet=False):
     return report
 
 
-def _get_parser(prog):
+def make_parser(prog):
     """Build a parser for command-line arguments.
 
     :sig: (str) -> ArgumentParser
@@ -277,7 +277,7 @@ def main(argv=None):
     :param argv: Command line arguments.
     """
     argv = argv if argv is not None else sys.argv
-    parser = _get_parser(prog='calico')
+    parser = make_parser(prog='calico')
     arguments = parser.parse_args(argv[1:])
 
     try:
