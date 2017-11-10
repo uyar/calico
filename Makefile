@@ -1,6 +1,7 @@
-.PHONY: help clean clean-pyc clean-build lint test test-all coverage docs release sdist
+.PHONY: help clean clean-build clean-pyc clean-docs lint test test-all coverage docs release sdist
 
 help:
+	@echo "clean - clean everything"
 	@echo "clean-build - remove build artifacts"
 	@echo "clean-pyc - remove Python file artifacts"
 	@echo "clean-docs - remove Sphinx documentation artifacts"
