@@ -42,26 +42,97 @@ _logger = logging.getLogger(__name__)
 class Direction(Enum):
     """Direction of an action."""
 
-    EXPECT = ("expect", "e")
-    SEND = ("send", "s")
+    EXPECT = ("e", "expect")
+    SEND = ("s", "send")
 
 
-class Script:
-    """A script in a test case."""
+class Evaluation:
+    """An evaluation of an assignment."""
 
     def __init__(self):
-        """Initialize this script.
+        """Initialize this evaluation.
 
         :sig: () -> None
         """
+        self.cases = OrderedDict()  # sig: OrderedDict
+        """Cases in this evaluation."""
+
+        self.points = 0  # sig: int
+        """Total points in the evaluation."""
+
+    def add_case(self, case):
+        """Add a case to this evaluation.
+
+        :sig: (TestCase) -> None
+        :param case: Test case to add to this evaluation.
+        """
+        self.cases[case.name] = case
+        self.points += case.points if case.points is not None else 0
+
+
+class TestCase:
+    """A test case in an evaluation."""
+
+    def __init__(
+        self,
+        name,
+        *,
+        command,
+        timeout=None,
+        returns=0,
+        points=None,
+        blocker=False,
+        visible=True,
+    ):
+        """Initialize this test case.
+
+        :sig:
+            (
+                str,
+                str,
+                Optional[int],
+                Optional[int],
+                Optional[int],
+                Optional[bool],
+                Optional[bool]
+            ) -> None
+        :param name: Name of the test case.
+        :param command: Command to run in the test case.
+        :param timeout: Timeout duration of the test case, in seconds.
+        :param returns: Expected return value of the test case.
+        :param points: Point value of the test case.
+        :param blocker: Whether failure blocks subsequent cases.
+        :param visible: Whether the test will be visible during the run.
+        """
+        self.name = name  # sig: str
+        """Name of this test case."""
+
+        self.command = command  # sig: str
+        """Command to run in this test case."""
+
         self.actions = []  # sig: List[Action]
-        """Sequence of actions in this script."""
+        """Sequence of actions to run in this test case."""
+
+        self.timeout = timeout  # sig: Optional[int]
+        """Timeout duration of the test case."""
+
+        self.returns = returns  # sig: int
+        """Expected return value of this test case."""
+
+        self.points = points  # sig: Optional[int]
+        """How much this test case contributes to the total points."""
+
+        self.blocker = blocker  # sig: bool
+        """Whether failure in this case will block subsequent cases or not."""
+
+        self.visible = visible  # sig: bool
+        """Whether this test will be visible during the run or not."""
 
     def add_action(self, action):
-        """Append an action to this script.
+        """Append an action to the script of this test case.
 
         :sig: (Action) -> None
-        :param action: Action to append to this script.
+        :param action: Action to append to the script of this test case.
         """
         self.actions.append(action)
 
@@ -69,7 +140,7 @@ class Script:
 class Action:
     """An action in a test script."""
 
-    def __init__(self, direction, data, timeout=None):
+    def __init__(self, direction, data, *, timeout=None):
         """Initialize this action.
 
         :sig: (Direction, str, Optional[int]) -> None
@@ -92,7 +163,7 @@ class Action:
         :sig: () -> Tuple[str, str, Optional[int]]
         :return: Direction, data, and timeout of this action.
         """
-        return self.direction.value[0], self.data, self.timeout
+        return self.direction.value[-1], self.data, self.timeout
 
 
 def get_comment_value(node, name, field):
@@ -118,9 +189,9 @@ def get_comment_value(node, name, field):
 def parse_spec(source):
     """Parse a test specification.
 
-    :sig: (str) -> Tuple[Mapping[str, Any], Union[int, float]]
+    :sig: (str) -> Evaluation
     :param source: Specification to parse.
-    :return: Tests in the spec file and their total points.
+    :return: Evaluation cases.
     :raise AssertionError: When given spec source is invalid.
     """
     try:
@@ -131,45 +202,17 @@ def parse_spec(source):
     if config is None:
         raise AssertionError("No configuration")
 
-    dir_map = {i: m for m in Direction for i in m.value}
+    direction_map = {i: m for m in Direction for i in m.value}
 
     total_points = 0
+
+    evaluation = Evaluation()
+
     tests = [(k, v) for c in config for k, v in c.items()]
     for test_name, test_body in tests:
         run = test_body.get("run")
         assert run is not None, f"{test_name}: no run command"
-        assert isinstance(run, str), f"{test_name}: run command must be string"
-
-        script = test_body.get("script", [])[:]
-        test_body["script"] = Script()
-        if not script:
-            timeout = get_comment_value(test_body, "run", "timeout")
-            assert (
-                timeout is None
-            ) or timeout.isdigit(), f"{test_name}: timeout value must be integer"
-
-            # If there's no script, just expect EOF.
-            stage = Action(
-                Direction.EXPECT,
-                "_EOF_",
-                timeout=int(timeout) if timeout is not None else None,
-            )
-            test_body["script"].add_action(stage)
-        else:
-            for step in script:
-                action, data = [(k, v) for k, v in step.items()][0]
-                assert action in dir_map, f"{test_name}: invalid action type"
-                assert isinstance(data, str), f"{test_name}: step data must be string"
-                timeout = get_comment_value(step, action, "timeout")
-                assert (
-                    timeout is None
-                ) or timeout.isdigit(), f"{test_name}: timeout value must be integer"
-                stage = Action(
-                    dir_map[action],
-                    data,
-                    timeout=int(timeout) if timeout is not None else None,
-                )
-                test_body["script"].add_action(stage)
+        assert isinstance(run, str), f"{test_name}: run command must be a string"
 
         returns = test_body.get("return")
         if returns is not None:
@@ -177,12 +220,13 @@ def parse_spec(source):
                 returns, int
             ), f"{test_name}: return value must be integer"
 
+        timeout = get_comment_value(test_body, "run", "timeout")
+        if timeout is not None:
+            assert timeout.isdigit(), f"{test_name}: timeout value must be integer"
+
         points = test_body.get("points")
         if points is not None:
-            assert isinstance(
-                points, (int, float)
-            ), f"{test_name}: points value must be numeric"
-            total_points += test_body["points"]
+            assert isinstance(points, int), f"{test_name}: points value must be integer"
 
         blocker = test_body.get("blocker")
         if blocker is not None:
@@ -195,6 +239,38 @@ def parse_spec(source):
             assert isinstance(
                 visible, bool
             ), f"{test_name}: visible must be true or false"
+
+        case = TestCase(
+            test_name,
+            command=run,
+            returns=returns,
+            timeout=int(timeout) if timeout is not None else None,
+            points=points,
+            blocker=blocker,
+            visible=visible,
+        )
+
+        script = test_body.get("script")
+        if script is None:
+            # If there's no script, just expect EOF.
+            action = Action(Direction.EXPECT, "_EOF_")
+            case.add_action(action)
+        else:
+            for step in script:
+                direction, data = [(k, v) for k, v in step.items()][0]
+                assert direction in direction_map, f"{test_name}: unknown direction"
+                assert isinstance(data, str), f"{test_name}: step data must be string"
+                timeout = get_comment_value(step, direction, "timeout")
+                if timeout is not None:
+                    assert timeout.isdigit(), f"{test_name}: timeout must be integer"
+                action = Action(
+                    direction_map[direction],
+                    data,
+                    timeout=int(timeout) if timeout is not None else None,
+                )
+                case.add_action(action)
+
+        cases.append(case)
 
     return OrderedDict(tests), total_points
 
