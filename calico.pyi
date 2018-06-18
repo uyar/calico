@@ -2,6 +2,7 @@
 
 from typing import Any, List, Mapping, Optional, Tuple, Union
 
+from collections import OrderedDict
 from enum import Enum
 
 import ruamel.yaml.comments
@@ -11,10 +12,35 @@ ConfigNode = ruamel.yaml.comments.CommentedMap
 
 class Direction(Enum): ...
 
-class Script:
-    actions = ...  # type: List[Action]
+class Evaluation:
+    cases = ...   # type: OrderedDict
+    points = ...  # type: int
 
     def __init__(self) -> None: ...
+
+    def add_case(self, case: TestCase) -> None: ...
+
+class TestCase:
+    name = ...     # type: str
+    command = ...  # type: str
+    actions = ...  # type: List[Action]
+    timeout = ...  # type: Optional[int]
+    returns = ...  # type: int
+    points = ...   # type: Optional[int]
+    blocker = ...  # type: bool
+    visible = ...  # type: bool
+
+    def __init__(
+            self,
+            name: str,
+            *,
+            command: str,
+            timeout: Optional[int] = ...,
+            returns: Optional[int] = ...,
+            points: Optional[int] = ...,
+            blocker: Optional[bool] = ...,
+            visible: Optional[bool] = ...
+    ) -> None: ...
 
     def add_action(self, action: Action) -> None: ...
 
@@ -27,6 +53,7 @@ class Action:
             self,
             direction: Direction,
             data: str,
+            *,
             timeout: Optional[int] = ...
     ) -> None: ...
 
@@ -34,9 +61,7 @@ class Action:
 
 def get_comment_value(node: ConfigNode, name: str, field: str) -> str: ...
 
-def parse_spec(
-        source: str
-) -> Tuple[Mapping[str, Any], Union[int, float]]: ...
+def parse_spec(source: str) -> Evaluation: ...
 
 def run_script(
         command: str,
