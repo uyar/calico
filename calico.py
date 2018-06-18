@@ -1,4 +1,4 @@
-# Copyright (C) 2016-2017 H. Turgut Uyar <uyar@itu.edu.tr>
+# Copyright (C) 2016-2018 H. Turgut Uyar <uyar@itu.edu.tr>
 #
 # Calico is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -30,18 +30,18 @@ from ruamel import yaml
 
 
 MAX_LEN = 40
-SUPPORTS_JAIL = shutil.which('fakechroot') is not None
+SUPPORTS_JAIL = shutil.which("fakechroot") is not None
 
 _logger = logging.getLogger(__name__)
 
 
 def _get_yaml_comment(node, name, field):
     try:
-        comment = node.ca.items[name][2].value[1:].strip()  # remove the hash from the start
+        comment = node.ca.items[name][2].value[1:].strip()  # remove the leading hash
     except KeyError:
         comment = None
-    if (comment is not None) and comment.startswith(field + ':'):
-        return comment[len(field)+1:].strip()
+    if (comment is not None) and comment.startswith(field + ":"):
+        return comment[len(field) + 1 :].strip()
     return None
 
 
@@ -59,51 +59,68 @@ def parse_spec(source):
         raise AssertionError(str(e))
 
     if config is None:
-        raise AssertionError('No configuration')
+        raise AssertionError("No configuration")
 
     total_points = 0
     tests = [(k, v) for c in config for k, v in c.items()]
     for test_name, test in tests:
-        run = test.get('run')
-        assert run is not None, test_name + ': no run command'
-        assert isinstance(run, str), test_name + ': run command must be string'
+        run = test.get("run")
+        assert run is not None, test_name + ": no run command"
+        assert isinstance(run, str), test_name + ": run command must be string"
 
-        script = test.get('script')
+        script = test.get("script")
         if script is None:
-            timeout = _get_yaml_comment(test, 'run', 'timeout')
-            assert (timeout is None) or timeout.isdigit(), \
-                test_name + ': timeout value must be integer'
-            script_item = ('expect', '_EOF_', int(timeout) if timeout is not None else None)
-            test['script'] = [script_item]
+            timeout = _get_yaml_comment(test, "run", "timeout")
+            assert (timeout is None) or timeout.isdigit(), (
+                test_name + ": timeout value must be integer"
+            )
+            script_item = (
+                "expect",
+                "_EOF_",
+                int(timeout) if timeout is not None else None,
+            )
+            test["script"] = [script_item]
         else:
-            test['script'] = []
+            test["script"] = []
             for step in script:
                 action, data = [(k, v) for k, v in step.items()][0]
-                assert action in ('expect', 'send'), test_name + ': invalid action type'
-                assert isinstance(data, str), test_name + ': step data must be string'
-                timeout = _get_yaml_comment(step, action, 'timeout')
-                assert (timeout is None) or timeout.isdigit(), \
-                    test_name + ': timeout value must be integer'
-                script_item = (action, data, int(timeout) if timeout is not None else None)
-                test['script'].append(script_item)
+                assert action in ("expect", "send"), test_name + ": invalid action type"
+                assert isinstance(data, str), test_name + ": step data must be string"
+                timeout = _get_yaml_comment(step, action, "timeout")
+                assert (timeout is None) or timeout.isdigit(), (
+                    test_name + ": timeout value must be integer"
+                )
+                script_item = (
+                    action,
+                    data,
+                    int(timeout) if timeout is not None else None,
+                )
+                test["script"].append(script_item)
 
-        returns = test.get('return')
+        returns = test.get("return")
         if returns is not None:
-            assert isinstance(returns, int), test_name + ': return value must be integer'
+            assert isinstance(returns, int), (
+                test_name + ": return value must be integer"
+            )
 
-        points = test.get('points')
+        points = test.get("points")
         if points is not None:
-            assert isinstance(points, (int, float)), \
-                test_name + ': points value must be numeric'
-            total_points += test['points']
+            assert isinstance(points, (int, float)), (
+                test_name + ": points value must be numeric"
+            )
+            total_points += test["points"]
 
-        blocker = test.get('blocker')
+        blocker = test.get("blocker")
         if blocker is not None:
-            assert isinstance(blocker, bool), test_name + ': blocker must be true or false'
+            assert isinstance(blocker, bool), (
+                test_name + ": blocker must be true or false"
+            )
 
-        visible = test.get('visible')
+        visible = test.get("visible")
         if visible is not None:
-            assert isinstance(visible, bool), test_name + ': visible must be true or false'
+            assert isinstance(visible, bool), (
+                test_name + ": visible must be true or false"
+            )
 
     return OrderedDict(tests), total_points
 
@@ -120,30 +137,33 @@ def run_script(command, script):
     process.setecho(False)
     errors = []
     for action, data, timeout in script:
-        if action == 'expect':
-            pattern = pexpect.EOF if data == '_EOF_' else data
+        if action == "expect":
+            pattern = pexpect.EOF if data == "_EOF_" else data
             try:
-                _logger.debug('  expecting%s: %s',
-                              ' (%ss)' % timeout if timeout is not None else '', data)
+                _logger.debug(
+                    "  expecting%s: %s",
+                    " (%ss)" % timeout if timeout is not None else "",
+                    data,
+                )
                 process.expect(pattern, timeout=timeout)
-                received = '_EOF_' if '.EOF' in repr(process.after) else process.after
-                _logger.debug('  received: %s', received)
+                received = "_EOF_" if ".EOF" in repr(process.after) else process.after
+                _logger.debug("  received: %s", received)
             except pexpect.EOF:
-                received = '_EOF_' if '.EOF' in repr(process.before) else process.before
-                _logger.debug('  received: %s', received)
+                received = "_EOF_" if ".EOF" in repr(process.before) else process.before
+                _logger.debug("  received: %s", received)
                 process.close(force=True)
-                _logger.debug('FAILED: Expected output not received.')
-                errors.append('Expected output not received.')
+                _logger.debug("FAILED: Expected output not received.")
+                errors.append("Expected output not received.")
                 break
             except pexpect.TIMEOUT:
-                received = '_EOF_' if '.EOF' in repr(process.before) else process.before
-                _logger.debug('  received: %s', received)
+                received = "_EOF_" if ".EOF" in repr(process.before) else process.before
+                _logger.debug("  received: %s", received)
                 process.close(force=True)
-                _logger.debug('FAILED: Timeout exceeded.')
-                errors.append('Timeout exceeded.')
+                _logger.debug("FAILED: Timeout exceeded.")
+                errors.append("Timeout exceeded.")
                 break
-        elif action == 'send':
-            _logger.debug('  sending: %s', data)
+        elif action == "send":
+            _logger.debug("  sending: %s", data)
             process.sendline(data)
     else:
         process.close(force=True)
@@ -158,24 +178,24 @@ def run_test(test, *, jailed=False):
     :param jailed: Whether to jail the command to the current directory.
     :return: Result report of the test.
     """
-    report = {'errors': []}
+    report = {"errors": []}
 
-    command = test['run']
+    command = test["run"]
     if jailed:
-        command = 'fakechroot chroot %(root)s %(command)s' % {
-            'root': os.getcwd(),
-            'command': command
+        command = "fakechroot chroot %(root)s %(command)s" % {
+            "root": os.getcwd(),
+            "command": command,
         }
-    _logger.debug('running command: %s', command)
+    _logger.debug("running command: %s", command)
 
-    script = test.get('script')
+    script = test.get("script")
     exit_status, errors = run_script(command, script)
 
-    report['errors'].extend(errors)
+    report["errors"].extend(errors)
 
-    expected_status = test.get('return', 0)
+    expected_status = test.get("return", 0)
     if exit_status != expected_status:
-        report['errors'].append('Incorrect exit status.')
+        report["errors"].append("Incorrect exit status.")
 
     return report
 
@@ -191,42 +211,42 @@ def run_spec(tests, *, quiet=False):
     report = OrderedDict()
     earned_points = 0
 
-    os.environ['TERM'] = 'dumb'     # disable color output in terminal
+    os.environ["TERM"] = "dumb"  # disable color output in terminal
 
     for test_name, test in tests.items():
-        _logger.debug('starting test %s', test_name)
-        visible = test.get('visible', True)
+        _logger.debug("starting test %s", test_name)
+        visible = test.get("visible", True)
         if (not quiet) and visible:
-            lead = '%(name)s %(dots)s ' % {
-                'name': test_name,
-                'dots': '.' * (MAX_LEN - len(test_name) + 1)
+            lead = "%(name)s %(dots)s " % {
+                "name": test_name,
+                "dots": "." * (MAX_LEN - len(test_name) + 1),
             }
-            print(lead, end='')
+            print(lead, end="")
 
-        jailed = SUPPORTS_JAIL and test_name.startswith('case_')
+        jailed = SUPPORTS_JAIL and test_name.startswith("case_")
         report[test_name] = run_test(test, jailed=jailed)
-        passed = len(report[test_name]['errors']) == 0
+        passed = len(report[test_name]["errors"]) == 0
 
-        points = test.get('points')
+        points = test.get("points")
         if points is None:
             if (not quiet) and visible:
-                tail = 'PASSED' if passed else 'FAILED'
+                tail = "PASSED" if passed else "FAILED"
                 print(tail)
         else:
-            report[test_name]['points'] = points if passed else 0
-            earned_points += report[test_name]['points']
+            report[test_name]["points"] = points if passed else 0
+            earned_points += report[test_name]["points"]
             if (not quiet) and visible:
-                tail = '%(scored)d / %(over)d' % {
-                    'scored': report[test_name]['points'],
-                    'over': points
+                tail = "%(scored)d / %(over)d" % {
+                    "scored": report[test_name]["points"],
+                    "over": points,
                 }
                 print(tail)
 
-        blocker = test.get('blocker', False)
+        blocker = test.get("blocker", False)
         if blocker and (not passed):
             break
 
-    report['points'] = earned_points
+    report["points"] = earned_points
     return report
 
 
@@ -236,15 +256,20 @@ def make_parser(prog):
     :param prog: Name of program.
     """
     parser = ArgumentParser(prog=prog)
-    parser.add_argument('--version', action='version', version='%(prog)s 1.0a2')
+    parser.add_argument("--version", action="version", version="%(prog)s 1.0a2")
 
-    parser.add_argument('spec', help='test specifications file')
-    parser.add_argument('-d', '--directory', help='change to directory before doing anything')
-    parser.add_argument('--validate', action='store_true',
-                        help='don\'t run tests, just validate spec')
-    parser.add_argument('--quiet', action='store_true', help='disable most messages')
-    parser.add_argument('--log', action='store_true', help='create a log file')
-    parser.add_argument('--debug', action='store_true', help='enable debugging messages')
+    parser.add_argument("spec", help="test specifications file")
+    parser.add_argument(
+        "-d", "--directory", help="change to directory before doing anything"
+    )
+    parser.add_argument(
+        "--validate", action="store_true", help="don't run tests, just validate spec"
+    )
+    parser.add_argument("--quiet", action="store_true", help="disable most messages")
+    parser.add_argument("--log", action="store_true", help="create a log file")
+    parser.add_argument(
+        "--debug", action="store_true", help="enable debugging messages"
+    )
     return parser
 
 
@@ -266,7 +291,7 @@ def setup_logging(*, debug, log):
         _logger.setLevel(logging.DEBUG)
 
         # file handler for logging messages
-        file_handler = logging.FileHandler('log.txt')
+        file_handler = logging.FileHandler("log.txt")
         file_handler.setLevel(logging.DEBUG)
         _logger.addHandler(file_handler)
 
@@ -278,7 +303,7 @@ def main(argv=None):
     :param argv: Command line arguments.
     """
     argv = argv if argv is not None else sys.argv
-    parser = make_parser(prog='calico')
+    parser = make_parser(prog="calico")
     arguments = parser.parse_args(argv[1:])
 
     try:
@@ -295,9 +320,9 @@ def main(argv=None):
 
         if not arguments.validate:
             report = run_spec(tests, quiet=arguments.quiet)
-            summary = 'Grade: %(scored)d / %(over)d' % {
-                'scored': report['points'],
-                'over': total_points
+            summary = "Grade: %(scored)d / %(over)d" % {
+                "scored": report["points"],
+                "over": total_points,
             }
             print(summary)
     except Exception as e:
@@ -305,5 +330,5 @@ def main(argv=None):
         sys.exit(1)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
