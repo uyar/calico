@@ -5,6 +5,7 @@ syntax: glob
 *.log
 
 .cache/
+.pytest_cache/
 .coverage/
 .tox/
 .vagrant/
