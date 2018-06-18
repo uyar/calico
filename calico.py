@@ -276,6 +276,7 @@ def make_parser(prog):
 def setup_logging(*, debug, log):
     """Set up logging levels and handlers.
 
+    :sig: (bool, bool) -> None
     :param debug: Whether to activate debugging.
     :param log: Whether to activate logging.
     """
