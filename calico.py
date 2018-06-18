@@ -176,6 +176,74 @@ class TestCase:
         """
         self.script.append(action)
 
+    def run(self, *, jailed=False):
+        """Run this test and produce a report.
+
+        :sig: (Optional[bool]) -> Mapping[str, Union[str, List[str]]]
+        :param jailed: Whether to jail the command to the current directory.
+        :return: Result report of the test.
+        """
+        report = {"errors": []}
+
+        jail_prefix = f"fakechroot chroot {os.getcwd()} " if jailed else ""
+        command = f"{jail_prefix}{self.command}"
+        _logger.debug("running command: %s", command)
+
+        exit_status, errors = self.run_script(command)
+        report["errors"].extend(errors)
+
+        if exit_status != self.returns:
+            report["errors"].append("Incorrect exit status.")
+
+        return report
+
+    def run_script(self, command):
+        """Run the command of this test case and check whether it follows the script.
+
+        :sig: (str) -> Tuple[int, List[str]]
+        :return: Exit status and errors.
+        """
+        process = pexpect.spawn(command)
+        process.setecho(False)
+        errors = []
+        for action in self.script:
+            if action == ActionType.EXPECT:
+                try:
+                    _logger.debug(
+                        "  expecting%s: %s",
+                        " (%ss)" % action.timeout if action.timeout > 0 else "",
+                        action.data,
+                    )
+                    process.expect(action.data, timeout=action.timeout)
+                    received = (
+                        "_EOF_" if ".EOF" in repr(process.after) else process.after
+                    )
+                    _logger.debug("  received: %s", received)
+                except pexpect.EOF:
+                    received = (
+                        "_EOF_" if ".EOF" in repr(process.before) else process.before
+                    )
+                    _logger.debug("  received: %s", received)
+                    process.close(force=True)
+                    _logger.debug("FAILED: Expected output not received.")
+                    errors.append("Expected output not received.")
+                    break
+                except pexpect.TIMEOUT:
+                    received = (
+                        "_EOF_" if ".EOF" in repr(process.before) else process.before
+                    )
+                    _logger.debug("  received: %s", received)
+                    process.close(force=True)
+                    _logger.debug("FAILED: Timeout exceeded.")
+                    errors.append("Timeout exceeded.")
+                    break
+            elif action == ActionType.SEND:
+                _logger.debug("  sending: %s", action.data)
+                process.sendline(action.data)
+        else:
+            process.close(force=True)
+        return process.exitstatus, errors
+
 
 class Action:
     """An action in a test script."""
@@ -312,81 +380,6 @@ def parse_spec(source):
         parsed.add_case(case)
 
     return parsed
-
-
-def run_script(command, script):
-    """Run a command and check whether it follows a script.
-
-    :sig: (str, List[Tuple[str, str, Optional[int]]]) -> Tuple[int, List[str]]
-    :param command: Command to run.
-    :param script: Script to follow.
-    :return: Exit status and errors.
-    """
-    process = pexpect.spawn(command)
-    process.setecho(False)
-    errors = []
-    for action, data, timeout in script:
-        if action == "expect":
-            pattern = pexpect.EOF if data == "_EOF_" else data
-            try:
-                _logger.debug(
-                    "  expecting%s: %s",
-                    " (%ss)" % timeout if timeout is not None else "",
-                    data,
-                )
-                process.expect(pattern, timeout=timeout)
-                received = "_EOF_" if ".EOF" in repr(process.after) else process.after
-                _logger.debug("  received: %s", received)
-            except pexpect.EOF:
-                received = "_EOF_" if ".EOF" in repr(process.before) else process.before
-                _logger.debug("  received: %s", received)
-                process.close(force=True)
-                _logger.debug("FAILED: Expected output not received.")
-                errors.append("Expected output not received.")
-                break
-            except pexpect.TIMEOUT:
-                received = "_EOF_" if ".EOF" in repr(process.before) else process.before
-                _logger.debug("  received: %s", received)
-                process.close(force=True)
-                _logger.debug("FAILED: Timeout exceeded.")
-                errors.append("Timeout exceeded.")
-                break
-        elif action == "send":
-            _logger.debug("  sending: %s", data)
-            process.sendline(data)
-    else:
-        process.close(force=True)
-    return process.exitstatus, errors
-
-
-def run_test(test, *, jailed=False):
-    """Run a test and produce a report.
-
-    :sig: (Mapping[str, Any], Optional[bool]) -> Mapping[str, Union[str, List[str]]]
-    :param test: Test to run.
-    :param jailed: Whether to jail the command to the current directory.
-    :return: Result report of the test.
-    """
-    report = {"errors": []}
-
-    command = test["run"]
-    if jailed:
-        command = "fakechroot chroot %(root)s %(command)s" % {
-            "root": os.getcwd(),
-            "command": command,
-        }
-    _logger.debug("running command: %s", command)
-
-    script = test.get("script")
-    exit_status, errors = run_script(command, script)
-
-    report["errors"].extend(errors)
-
-    expected_status = test.get("return", 0)
-    if exit_status != expected_status:
-        report["errors"].append("Incorrect exit status.")
-
-    return report
 
 
 def make_parser(prog):
