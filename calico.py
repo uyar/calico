@@ -28,6 +28,7 @@ from enum import Enum
 
 import pexpect
 from ruamel import yaml
+from ruamel.yaml.comments import CommentedSeq
 
 
 # sigalias: ConfigNode = ruamel.yaml.comments.CommentedMap
@@ -200,6 +201,9 @@ def parse_spec(source):
 
     if config is None:
         raise AssertionError("No configuration")
+
+    if not isinstance(config, CommentedSeq):
+        raise AssertionError("Invalid configuration")
 
     parsed = ParsedSpec()
 
