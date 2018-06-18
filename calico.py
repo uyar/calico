@@ -65,14 +65,14 @@ def parse_spec(source):
 
     total_points = 0
     tests = [(k, v) for c in config for k, v in c.items()]
-    for test_name, test in tests:
-        run = test.get("run")
+    for test_name, test_body in tests:
+        run = test_body.get("run")
         assert run is not None, f"{test_name}: no run command"
         assert isinstance(run, str), f"{test_name}: run command must be string"
 
-        script = test.get("script")
+        script = test_body.get("script")
         if script is None:
-            timeout = _get_yaml_comment(test, "run", "timeout")
+            timeout = _get_yaml_comment(test_body, "run", "timeout")
             assert (
                 timeout is None
             ) or timeout.isdigit(), f"{test_name}: timeout value must be integer"
@@ -81,9 +81,9 @@ def parse_spec(source):
                 "_EOF_",
                 int(timeout) if timeout is not None else None,
             )
-            test["script"] = [script_item]
+            test_body["script"] = [script_item]
         else:
-            test["script"] = []
+            test_body["script"] = []
             for step in script:
                 action, data = [(k, v) for k, v in step.items()][0]
                 assert action in ("expect", "send"), f"{test_name}: invalid action type"
@@ -97,28 +97,28 @@ def parse_spec(source):
                     data,
                     int(timeout) if timeout is not None else None,
                 )
-                test["script"].append(script_item)
+                test_body["script"].append(script_item)
 
-        returns = test.get("return")
+        returns = test_body.get("return")
         if returns is not None:
             assert isinstance(
                 returns, int
             ), f"{test_name}: return value must be integer"
 
-        points = test.get("points")
+        points = test_body.get("points")
         if points is not None:
             assert isinstance(
                 points, (int, float)
             ), f"{test_name}: points value must be numeric"
-            total_points += test["points"]
+            total_points += test_body["points"]
 
-        blocker = test.get("blocker")
+        blocker = test_body.get("blocker")
         if blocker is not None:
             assert isinstance(
                 blocker, bool
             ), f"{test_name}: blocker must be true or false"
 
-        visible = test.get("visible")
+        visible = test_body.get("visible")
         if visible is not None:
             assert isinstance(
                 visible, bool
