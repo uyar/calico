@@ -12,8 +12,7 @@ ConfigNode = ruamel.yaml.comments.CommentedMap
 
 class Direction(Enum): ...
 
-class ParsedSpec:
-    cases = ...   # type: OrderedDict
+class ParsedSpec(OrderedDict):
     points = ...  # type: int
 
     def __init__(self) -> None: ...
@@ -23,7 +22,7 @@ class ParsedSpec:
 class TestCase:
     name = ...     # type: str
     command = ...  # type: str
-    actions = ...  # type: List[Action]
+    script = ...   # type: List[Action]
     timeout = ...  # type: int
     returns = ...  # type: int
     points = ...   # type: int
