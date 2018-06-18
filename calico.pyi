@@ -7,6 +7,20 @@ import ruamel.yaml.comments
 ConfigNode = ruamel.yaml.comments.CommentedMap
 
 
+class Action:
+    direction = ...  # type: str
+    data = ...       # type: str
+    timeout = ...    # type: int
+
+    def __init__(
+            self,
+            direction: str,
+            data: str,
+            timeout: Optional[int] = ...
+    ) -> None: ...
+
+    def as_tuple(self) -> Tuple[str, str, Optional[int]]: ...
+
 def get_comment_value(node: ConfigNode, name: str, field: str) -> str: ...
 
 def parse_spec(
