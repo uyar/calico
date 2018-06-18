@@ -47,21 +47,106 @@ class ActionType(Enum):
     SEND = ("s", "send")
 
 
-class TestSuite(OrderedDict):
-    """A suite containing multiple, ordered tests."""
+class Suite(OrderedDict):
+    """A suite containing multiple, ordered test cases."""
 
-    def __init__(self):
-        """Initialize this test suite.
+    def __init__(self, spec):
+        """Initialize this test suite from a given specification.
 
-        :sig: () -> None
+        :sig: (str) -> None
+        :param spec: Specification to parse.
         """
         super().__init__()
 
         self.points = 0  # sig: int
         """Total points in this test suite."""
 
+        self.parse(spec)
+
+    def parse(self, source):
+        """Parse a test specification.
+
+        :sig: (str) -> None
+        :param source: Specification to parse.
+        :raise AssertionError: When given spec is invalid.
+        """
+        try:
+            config = yaml.round_trip_load(source)
+        except yaml.YAMLError as e:
+            raise AssertionError(str(e))
+
+        if config is None:
+            raise AssertionError("No configuration")
+
+        if not isinstance(config, comments.CommentedSeq):
+            raise AssertionError("Invalid configuration")
+
+        action_types = {i: m for m in ActionType for i in m.value}
+
+        tests = [(k, v) for c in config for k, v in c.items()]
+        for name, test in tests:
+            run = test.get("run")
+            assert run is not None, f"{name}: no run command"
+            assert isinstance(run, str), f"{name}: run command must be a string"
+
+            kwargs = {}
+
+            ret = test.get("return")
+            if ret is not None:
+                assert isinstance(ret, int), f"{name}: return value must be integer"
+                kwargs["returns"] = ret
+
+            timeout = get_comment_value(test, name="run", field="timeout")
+            if timeout is not None:
+                assert timeout.isdigit(), f"{name}: timeout value must be integer"
+                kwargs["timeout"] = int(timeout)
+
+            points = test.get("points")
+            if points is not None:
+                assert isinstance(points, int), f"{name}: points value must be integer"
+                kwargs["points"] = points
+
+            blocker = test.get("blocker")
+            if blocker is not None:
+                assert isinstance(
+                    blocker, bool
+                ), f"{name}: blocker must be true or false"
+                kwargs["blocker"] = blocker
+
+            vis = test.get("visible")
+            if vis is not None:
+                assert isinstance(vis, bool), f"{name}: visible must be true or false"
+                kwargs["visible"] = vis
+
+            case = TestCase(name, command=run, **kwargs)
+
+            script = test.get("script")
+            if script is None:
+                # If there's no script, just expect EOF.
+                action = Action(ActionType.EXPECT, "_EOF_")
+                case.add_action(action)
+            else:
+                for step in script:
+                    action_type, data = [(k, v) for k, v in step.items()][0]
+                    assert action_type in action_types, f"{name}: unknown action type"
+                    assert isinstance(data, str), f"{name}: action data must be string"
+
+                    kwargs = {}
+
+                    timeout = get_comment_value(step, name=action_type, field="timeout")
+                    if timeout is not None:
+                        assert (
+                            timeout.isdigit()
+                        ), f"{name}: timeout value must be integer"
+                        kwargs["timeout"] = int(timeout)
+
+                    action = Action(action_types[action_type], data, **kwargs)
+                    case.add_action(action)
+
+            self.add_case(case)
+
     def add_case(self, case):
-        """Add a case to this test suite.
+        """Add a test case to this suite.
 
         :sig: (TestCase) -> None
         :param case: Test case to add.
@@ -91,19 +176,17 @@ class TestSuite(OrderedDict):
             report[test_name] = test.run(jailed=jailed)
             passed = len(report[test_name]["errors"]) == 0
 
-            points = test.get("points")
-            if points is None:
+            if test.points > 0:
                 if (not quiet) and test.visible:
                     print("PASSED" if passed else "FAILED")
             else:
-                report[test_name]["points"] = points if passed else 0
+                report[test_name]["points"] = test.points if passed else 0
                 earned_points += report[test_name]["points"]
                 if (not quiet) and test.visible:
                     scored = report[test_name]["points"]
-                    print(f"{scored} / {points}")
+                    print(f"{scored} / {test.points}")
 
-            blocker = test.get("blocker", False)
-            if blocker and (not passed):
+            if test.blocker and (not passed):
                 break
 
         report["points"] = earned_points
@@ -298,90 +381,6 @@ def get_comment_value(node, *, name, field):
     return None
 
 
-def parse_spec(source):
-    """Parse a test specification.
-
-    :sig: (str) -> TestSuite
-    :param source: Specification to parse.
-    :return: Generated test suite.
-    :raise AssertionError: When given spec source is invalid.
-    """
-    try:
-        config = yaml.round_trip_load(source)
-    except yaml.YAMLError as e:
-        raise AssertionError(str(e))
-
-    if config is None:
-        raise AssertionError("No configuration")
-
-    if not isinstance(config, comments.CommentedSeq):
-        raise AssertionError("Invalid configuration")
-
-    parsed = TestSuite()
-
-    action_types = {i: m for m in ActionType for i in m.value}
-
-    tests = [(k, v) for c in config for k, v in c.items()]
-    for name, test in tests:
-        run = test.get("run")
-        assert run is not None, f"{name}: no run command"
-        assert isinstance(run, str), f"{name}: run command must be a string"
-
-        kwargs = {}
-
-        ret = test.get("return")
-        if ret is not None:
-            assert isinstance(ret, int), f"{name}: return value must be integer"
-            kwargs["returns"] = ret
-
-        timeout = get_comment_value(test, name="run", field="timeout")
-        if timeout is not None:
-            assert timeout.isdigit(), f"{name}: timeout value must be integer"
-            kwargs["timeout"] = int(timeout)
-
-        points = test.get("points")
-        if points is not None:
-            assert isinstance(points, int), f"{name}: points value must be integer"
-            kwargs["points"] = points
-
-        blocker = test.get("blocker")
-        if blocker is not None:
-            assert isinstance(blocker, bool), f"{name}: blocker must be true or false"
-            kwargs["blocker"] = blocker
-
-        vis = test.get("visible")
-        if vis is not None:
-            assert isinstance(vis, bool), f"{name}: visible must be true or false"
-            kwargs["visible"] = vis
-
-        case = TestCase(name, command=run, **kwargs)
-
-        script = test.get("script")
-        if script is None:
-            # If there's no script, just expect EOF.
-            action = Action(ActionType.EXPECT, "_EOF_")
-            case.add_action(action)
-        else:
-            for step in script:
-                action_type, data = [(k, v) for k, v in step.items()][0]
-                assert action_type in action_types, f"{name}: unknown action type"
-                assert isinstance(data, str), f"{name}: action data must be string"
-
-                kwargs = {}
-
-                timeout = get_comment_value(step, name=action_type, field="timeout")
-                if timeout is not None:
-                    assert timeout.isdigit(), f"{name}: timeout value must be integer"
-                    kwargs["timeout"] = int(timeout)
-
-                action = Action(action_types[action_type], data, **kwargs)
-                case.add_action(action)
-
-        parsed.add_case(case)
-
-    return parsed
-
-
 def make_parser(prog):
     """Build a parser for command-line arguments.
 
@@ -449,7 +448,7 @@ def main(argv=None):
 
         setup_logging(debug=arguments.debug, log=arguments.log)
 
-        suite = parse_spec(content)
+        suite = Suite(content)
 
         if not arguments.validate:
             report = suite.run(quiet=arguments.quiet)
