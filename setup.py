@@ -37,10 +37,11 @@ setup(
             "flake8",
             "flake8-isort",
             "flake8-docstrings",
+            "pygenstub",
             "wheel",
             "twine",
         ],
-        "doc": ["sphinx", "sphinx_rtd_theme"],
+        "doc": ["sphinx", "sphinx_rtd_theme", "pygenstub"],
         "test": ["pytest", "pytest-cov"],
     },
     entry_points="""
