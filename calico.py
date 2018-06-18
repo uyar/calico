@@ -31,7 +31,7 @@ from ruamel import yaml
 from ruamel.yaml import comments
 
 
-# sigalias: ConfigNode = comments.CommentedMap
+# sigalias: SpecNode = comments.CommentedMap
 
 
 MAX_LEN = 40
@@ -281,7 +281,7 @@ class Action:
 def get_comment_value(node, *, name, field):
     """Get the value of a comment field.
 
-    :sig: (ConfigNode, str, str) -> str
+    :sig: (SpecNode, str, str) -> str
     :param node: Node to get the comment from.
     :param name: Name of setting in the node.
     :param field: Name of comment field.
