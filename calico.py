@@ -29,6 +29,9 @@ import pexpect
 from ruamel import yaml
 
 
+# sigalias: ConfigNode = ruamel.yaml.comments.CommentedMap
+
+
 MAX_LEN = 40
 SUPPORTS_JAIL = shutil.which("fakechroot") is not None
 
@@ -38,7 +41,15 @@ _logger = logging.getLogger(__name__)
 ScriptStage = namedtuple("ScriptStage", ["action", "data", "timeout"])
 
 
-def _get_yaml_comment(node, name, field):
+def get_comment_value(node, name, field):
+    """Get the value of a comment field.
+
+    :sig: (ConfigNode, str, str) -> str
+    :param node: Node to get the comment from.
+    :param name: Name of setting in the node.
+    :param field: Name of comment field.
+    :return: Value of comment field.
+    """
     try:
         comment = node.ca.items[name][2].value[1:].strip()  # remove the leading hash
     except KeyError:
@@ -75,10 +86,12 @@ def parse_spec(source):
 
         script = test_body.get("script")
         if script is None:
-            timeout = _get_yaml_comment(test_body, "run", "timeout")
+            timeout = get_comment_value(test_body, "run", "timeout")
             assert (
                 timeout is None
             ) or timeout.isdigit(), f"{test_name}: timeout value must be integer"
+
+            # If there's no script, just expect EOF.
             stage = ScriptStage(
                 "expect", "_EOF_", timeout=int(timeout) if timeout is not None else None
             )
@@ -89,7 +102,7 @@ def parse_spec(source):
                 action, data = [(k, v) for k, v in step.items()][0]
                 assert action in ("expect", "send"), f"{test_name}: invalid action type"
                 assert isinstance(data, str), f"{test_name}: step data must be string"
-                timeout = _get_yaml_comment(step, action, "timeout")
+                timeout = get_comment_value(step, action, "timeout")
                 assert (
                     timeout is None
                 ) or timeout.isdigit(), f"{test_name}: timeout value must be integer"

@@ -2,6 +2,12 @@
 
 from typing import Any, List, Mapping, Optional, Tuple, Union
 
+import ruamel.yaml.comments
+
+ConfigNode = ruamel.yaml.comments.CommentedMap
+
+
+def get_comment_value(node: ConfigNode, name: str, field: str) -> str: ...
 
 def parse_spec(
         source: str
