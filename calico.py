@@ -151,7 +151,7 @@ class Suite(OrderedDict):
             script = test.get("script")
             if script is None:
                 # If there's no script, just expect EOF.
-                action = Action(ActionType.EXPECT, "_EOF_")
+                action = Action(ActionType.EXPECT, "_EOF_", timeout=case.timeout)
                 case.add_action(action)
             else:
                 for step in script:
