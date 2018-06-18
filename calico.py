@@ -40,8 +40,10 @@ def _get_yaml_comment(node, name, field):
         comment = node.ca.items[name][2].value[1:].strip()  # remove the leading hash
     except KeyError:
         comment = None
-    if (comment is not None) and comment.startswith(field + ":"):
-        return comment[len(field) + 1 :].strip()
+    if comment is not None:
+        delim = field + ":"
+        if comment.startswith(delim):
+            return comment[len(delim) :].strip()
     return None
 
 
