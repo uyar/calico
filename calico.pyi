@@ -12,7 +12,7 @@ ConfigNode = ruamel.yaml.comments.CommentedMap
 
 class Direction(Enum): ...
 
-class Evaluation:
+class ParsedSpec:
     cases = ...   # type: OrderedDict
     points = ...  # type: int
 
@@ -24,9 +24,9 @@ class TestCase:
     name = ...     # type: str
     command = ...  # type: str
     actions = ...  # type: List[Action]
-    timeout = ...  # type: Optional[int]
+    timeout = ...  # type: int
     returns = ...  # type: int
-    points = ...   # type: Optional[int]
+    points = ...   # type: int
     blocker = ...  # type: bool
     visible = ...  # type: bool
 
@@ -57,11 +57,11 @@ class Action:
             timeout: Optional[int] = ...
     ) -> None: ...
 
-    def as_tuple(self) -> Tuple[str, str, Optional[int]]: ...
+    def as_tuple(self) -> Tuple[str, str, int]: ...
 
-def get_comment_value(node: ConfigNode, name: str, field: str) -> str: ...
+def get_comment_value(node: ConfigNode, *, name: str, field: str) -> str: ...
 
-def parse_spec(source: str) -> Evaluation: ...
+def parse_spec(source: str) -> ParsedSpec: ...
 
 def run_script(
         command: str,
