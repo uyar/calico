@@ -28,10 +28,10 @@ from enum import Enum
 
 import pexpect
 from ruamel import yaml
-from ruamel.yaml.comments import CommentedSeq
+from ruamel.yaml import comments
 
 
-# sigalias: ConfigNode = ruamel.yaml.comments.CommentedMap
+# sigalias: ConfigNode = comments.CommentedMap
 
 
 MAX_LEN = 40
@@ -314,7 +314,7 @@ def parse_spec(source):
     if config is None:
         raise AssertionError("No configuration")
 
-    if not isinstance(config, CommentedSeq):
+    if not isinstance(config, comments.CommentedSeq):
         raise AssertionError("Invalid configuration")
 
     parsed = TestSuite()
