@@ -18,7 +18,7 @@ class Suite(OrderedDict):
 
     def __init__(self, spec: str) -> None: ...
 
-    def parse(self, spec: str) -> None: ...
+    def parse(self, content: str) -> None: ...
 
     def add_case(self, case: TestCase) -> None: ...
 
@@ -28,9 +28,9 @@ class TestCase:
     name = ...     # type: str
     command = ...  # type: str
     script = ...   # type: List[Action]
-    timeout = ...  # type: int
-    returns = ...  # type: int
-    points = ...   # type: int
+    timeout = ...  # type: Optional[int]
+    returns = ...  # type: Optional[int]
+    points = ...   # type: Optional[int]
     blocker = ...  # type: bool
     visible = ...  # type: bool
 
@@ -59,7 +59,7 @@ class TestCase:
 class Action:
     type_ = ...    # type: ActionType
     data = ...     # type: str
-    timeout = ...  # type: int
+    timeout = ...  # type: Optional[int]
 
     def __init__(
             self,
