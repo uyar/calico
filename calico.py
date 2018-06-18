@@ -39,8 +39,8 @@ SUPPORTS_JAIL = shutil.which("fakechroot") is not None
 _logger = logging.getLogger(__name__)
 
 
-class Direction(Enum):
-    """Direction of an action."""
+class ActionType(Enum):
+    """Type of an action."""
 
     EXPECT = ("e", "expect")
     SEND = ("s", "send")
@@ -54,6 +54,8 @@ class ParsedSpec(OrderedDict):
 
         :sig: () -> None
         """
+        super().__init__()
+
         self.points = 0  # sig: int
         """Total points in this specification."""
 
@@ -137,16 +139,16 @@ class TestCase:
 class Action:
     """An action in a test script."""
 
-    def __init__(self, direction, data, *, timeout=0):
+    def __init__(self, type_, data, *, timeout=0):
         """Initialize this action.
 
-        :sig: (Direction, str, Optional[int]) -> None
-        :param direction: Expect or send.
+        :sig: (ActionType, str, Optional[int]) -> None
+        :param type_: Expect or send.
         :param data: What to expect or send.
         :param timeout: Timeout duration, in seconds.
         """
-        self.direction = direction  # sig: Direction
-        """Direction of this action."""
+        self.type_ = type_  # sig: ActionType
+        """Type of this action, expect or send."""
 
         self.data = data  # sig: str
         """Data description of this action, what to expect or send."""
@@ -158,9 +160,9 @@ class Action:
         """Get this action as a tuple.
 
         :sig: () -> Tuple[str, str, int]
-        :return: Direction, data, and timeout.
+        :return: Action type, data, and timeout.
         """
-        return self.direction.value[-1], self.data, self.timeout
+        return self.type_.value[-1], self.data, self.timeout
 
 
 def get_comment_value(node, *, name, field):
@@ -201,7 +203,7 @@ def parse_spec(source):
 
     parsed = ParsedSpec()
 
-    direction_map = {i: m for m in Direction for i in m.value}
+    action_types = {i: m for m in ActionType for i in m.value}
 
     tests = [(k, v) for c in config for k, v in c.items()]
     for name, test in tests:
@@ -241,22 +243,22 @@ def parse_spec(source):
         script = test.get("script")
         if script is None:
             # If there's no script, just expect EOF.
-            action = Action(Direction.EXPECT, "_EOF_")
+            action = Action(ActionType.EXPECT, "_EOF_")
             case.add_action(action)
         else:
             for step in script:
-                direction, data = [(k, v) for k, v in step.items()][0]
-                assert direction in direction_map, f"{name}: unknown direction"
-                assert isinstance(data, str), f"{name}: step data must be string"
+                action_type, data = [(k, v) for k, v in step.items()][0]
+                assert action_type in action_types, f"{name}: unknown action type"
+                assert isinstance(data, str), f"{name}: action data must be string"
 
                 kwargs = {}
 
-                timeout = get_comment_value(step, name=direction, field="timeout")
+                timeout = get_comment_value(step, name=action_type, field="timeout")
                 if timeout is not None:
                     assert timeout.isdigit(), f"{name}: timeout value must be integer"
                     kwargs["timeout"] = int(timeout)
 
-                action = Action(direction_map[direction], data, **kwargs)
+                action = Action(action_types[action_type], data, **kwargs)
                 case.add_action(action)
 
         parsed.add_case(case)
