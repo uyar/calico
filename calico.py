@@ -24,6 +24,7 @@ import shutil
 import sys
 from argparse import ArgumentParser
 from collections import OrderedDict
+from enum import Enum
 
 import pexpect
 from ruamel import yaml
@@ -38,22 +39,29 @@ SUPPORTS_JAIL = shutil.which("fakechroot") is not None
 _logger = logging.getLogger(__name__)
 
 
+class Direction(Enum):
+    """Direction of an action."""
+
+    EXPECT = ("expect", "e")
+    SEND = ("send", "s")
+
+
 class Action:
     """An action in a test script."""
 
     def __init__(self, direction, data, timeout=None):
         """Initialize this action.
 
-        :sig: (str, str, Optional[int]) -> None
+        :sig: (Direction, str, Optional[int]) -> None
         :param direction: Direction of the action.
-        :param data: Communicated data during the action.
+        :param data: Data description of the action.
         :param timeout: Timeout duration of the action, in seconds.
         """
-        self.direction = direction  # sig: str
+        self.direction = direction  # sig: Direction
         """Direction of this action."""
 
         self.data = data  # sig: str
-        """Communicated data during this action."""
+        """Data description of this action."""
 
         self.timeout = timeout  # sig: int
         """Timeout duration of this action."""
@@ -64,7 +72,7 @@ class Action:
         :sig: () -> Tuple[str, str, Optional[int]]
         :return: Direction, data, and timeout of this action.
         """
-        return (self.direction, self.data, self.timeout)
+        return self.direction.value[0], self.data, self.timeout
 
 
 def get_comment_value(node, name, field):
@@ -103,6 +111,8 @@ def parse_spec(source):
     if config is None:
         raise AssertionError("No configuration")
 
+    dir_map = {i: m for m in Direction for i in m.value}
+
     total_points = 0
     tests = [(k, v) for c in config for k, v in c.items()]
     for test_name, test_body in tests:
@@ -119,21 +129,25 @@ def parse_spec(source):
 
             # If there's no script, just expect EOF.
             stage = Action(
-                "expect", "_EOF_", timeout=int(timeout) if timeout is not None else None
+                Direction.EXPECT,
+                "_EOF_",
+                timeout=int(timeout) if timeout is not None else None,
             )
             test_body["script"] = [stage]
         else:
             test_body["script"] = []
             for step in script:
                 action, data = [(k, v) for k, v in step.items()][0]
-                assert action in ("expect", "send"), f"{test_name}: invalid action type"
+                assert action in dir_map, f"{test_name}: invalid action type"
                 assert isinstance(data, str), f"{test_name}: step data must be string"
                 timeout = get_comment_value(step, action, "timeout")
                 assert (
                     timeout is None
                 ) or timeout.isdigit(), f"{test_name}: timeout value must be integer"
                 stage = Action(
-                    action, data, timeout=int(timeout) if timeout is not None else None
+                    dir_map[action],
+                    data,
+                    timeout=int(timeout) if timeout is not None else None,
                 )
                 test_body["script"].append(stage)
 

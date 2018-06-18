@@ -2,19 +2,23 @@
 
 from typing import Any, List, Mapping, Optional, Tuple, Union
 
+from enum import Enum
+
 import ruamel.yaml.comments
 
 ConfigNode = ruamel.yaml.comments.CommentedMap
 
 
+class Direction(Enum): ...
+
 class Action:
-    direction = ...  # type: str
+    direction = ...  # type: Direction
     data = ...       # type: str
     timeout = ...    # type: int
 
     def __init__(
             self,
-            direction: str,
+            direction: Direction,
             data: str,
             timeout: Optional[int] = ...
     ) -> None: ...
