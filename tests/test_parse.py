@@ -63,7 +63,7 @@ def test_case_script_with_invalid_action_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "unknown direction" in str(e)
+    assert "unknown action type" in str(e)
 
 
 def test_case_script_with_string_action_data_should_be_ok():
@@ -86,7 +86,7 @@ def test_case_script_with_numeric_action_data_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "step data must be string" in str(e)
+    assert "action data must be string" in str(e)
 
 
 def test_case_script_with_action_data_eof_should_be_ok():
@@ -111,7 +111,7 @@ def test_case_script_with_multiple_action_data_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "step data must be string" in str(e)
+    assert "action data must be string" in str(e)
 
 
 def test_case_script_order_should_be_preserved():
