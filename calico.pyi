@@ -4,10 +4,9 @@ from typing import Any, List, Mapping, Optional, Tuple, Union
 
 from collections import OrderedDict
 from enum import Enum
+from ruamel.yaml import comments
 
-import ruamel.yaml.comments
-
-ConfigNode = ruamel.yaml.comments.CommentedMap
+ConfigNode = comments.CommentedMap
 
 
 class ActionType(Enum): ...
