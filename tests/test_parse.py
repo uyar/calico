@@ -6,12 +6,13 @@ from calico import Suite
 def test_empty_spec_should_raise_error():
     with raises(AssertionError) as e:
         Suite("")
-    assert "No configuration" in str(e)
+    assert "No test specification" in str(e)
 
 
 def test_invalid_spec_format_should_raise_error():
-    with raises(AssertionError):
+    with raises(AssertionError) as e:
         Suite("!dummy")
+    assert "Invalid test specification" in str(e)
 
 
 def test_case_with_run_command_should_be_ok():
@@ -51,7 +52,7 @@ def test_case_with_no_script_should_expect_eof():
           run: echo 1
     """
     suite = Suite(source)
-    assert [s.as_tuple() for s in suite["c1"].script] == [("e", "_EOF_", 0)]
+    assert [s.as_tuple() for s in suite["c1"].script] == [("e", "_EOF_", None)]
 
 
 def test_case_script_with_invalid_action_should_raise_error():
@@ -74,7 +75,7 @@ def test_case_script_with_string_action_data_should_be_ok():
             - expect: "1"
     """
     suite = Suite(source)
-    assert [s.as_tuple() for s in suite["c1"].script] == [("e", "1", 0)]
+    assert [s.as_tuple() for s in suite["c1"].script] == [("e", "1", None)]
 
 
 def test_case_script_with_numeric_action_data_should_raise_error():
@@ -97,7 +98,7 @@ def test_case_script_with_action_data_eof_should_be_ok():
             - expect: _EOF_
     """
     suite = Suite(source)
-    assert [s.as_tuple() for s in suite["c1"].script] == [("e", "_EOF_", 0)]
+    assert [s.as_tuple() for s in suite["c1"].script] == [("e", "_EOF_", None)]
 
 
 def test_case_script_with_multiple_action_data_should_raise_error():
@@ -125,9 +126,9 @@ def test_case_script_order_should_be_preserved():
     """
     suite = Suite(source)
     assert [s.as_tuple() for s in suite["c1"].script] == [
-        ("e", "foo", 0),
-        ("s", "1", 0),
-        ("e", "_EOF_", 0),
+        ("e", "foo", None),
+        ("s", "1", None),
+        ("e", "_EOF_", None),
     ]
 
 

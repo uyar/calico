@@ -68,7 +68,7 @@ class ActionType(Enum):
 
 
 class Suite(OrderedDict):
-    """A suite containing multiple, ordered test cases."""
+    """A suite containing a collection of ordered test cases."""
 
     def __init__(self, spec):
         """Initialize this test suite from a given specification.
@@ -83,27 +83,27 @@ class Suite(OrderedDict):
 
         self.parse(spec)
 
-    def parse(self, spec):
+    def parse(self, content):
         """Parse a test specification.
 
         :sig: (str) -> None
-        :param spec: Specification to parse.
-        :raise AssertionError: When given spec is invalid.
+        :param content: Specification content to parse.
+        :raise AssertionError: When given specification is invalid.
         """
         try:
-            config = yaml.round_trip_load(spec)
+            spec = yaml.round_trip_load(content)
         except yaml.YAMLError as e:
             raise AssertionError(str(e))
 
-        if config is None:
-            raise AssertionError("No configuration")
+        if spec is None:
+            raise AssertionError("No test specification")
 
-        if not isinstance(config, comments.CommentedSeq):
-            raise AssertionError("Invalid configuration")
+        if not isinstance(spec, comments.CommentedSeq):
+            raise AssertionError("Invalid test specification")
 
         action_types = {i: m for m in ActionType for i in m.value}
 
-        tests = [(k, v) for c in config for k, v in c.items()]
+        tests = [(n, t) for c in spec for n, t in c.items()]
         for test_name, test in tests:
             run = test.get("run")
             assert run is not None, f"{test_name}: no run command"
@@ -128,19 +128,19 @@ class Suite(OrderedDict):
                 assert isinstance(points, int), f"{test_name}: points must be integer"
                 kwargs["points"] = points
 
-            block = test.get("blocker")
-            if block is not None:
+            blocker = test.get("blocker")
+            if blocker is not None:
                 assert isinstance(
-                    block, bool
+                    blocker, bool
                 ), f"{test_name}: blocker must be true or false"
-                kwargs["blocker"] = block
+                kwargs["blocker"] = blocker
 
-            vis = test.get("visible")
-            if vis is not None:
+            visible = test.get("visible")
+            if visible is not None:
                 assert isinstance(
-                    vis, bool
+                    visible, bool
                 ), f"{test_name}: visible must be true or false"
-                kwargs["visible"] = vis
+                kwargs["visible"] = visible
 
             case = TestCase(test_name, command=run, **kwargs)
 
@@ -180,7 +180,7 @@ class Suite(OrderedDict):
         :param case: Test case to add.
         """
         super().__setitem__(case.name, case)
-        self.points += case.points
+        self.points += case.points if case.points is not None else 0
 
     def run(self, *, quiet=False):
         """Run this test suite.
@@ -204,7 +204,7 @@ class Suite(OrderedDict):
             report[test_name] = test.run(jailed=jailed)
             passed = len(report[test_name]["errors"]) == 0
 
-            if test.points > 0:
+            if test.points is None:
                 if (not quiet) and test.visible:
                     print("PASSED" if passed else "FAILED")
             else:
@@ -229,9 +229,9 @@ class TestCase:
         name,
         *,
         command,
-        timeout=0,
-        returns=0,
-        points=0,
+        timeout=None,
+        returns=None,
+        points=None,
         blocker=False,
         visible=True,
     ):
@@ -264,13 +264,13 @@ class TestCase:
         self.script = []  # sig: List[Action]
         """Sequence of actions to run in this test case."""
 
-        self.timeout = timeout  # sig: int
-        """Timeout duration of this test case, in seconds. 0 means no timeout."""
+        self.timeout = timeout  # sig: Optional[int]
+        """Timeout duration of this test case, in seconds."""
 
-        self.returns = returns  # sig: int
+        self.returns = returns  # sig: Optional[int]
         """Expected return value of this test case."""
 
-        self.points = points  # sig: int
+        self.points = points  # sig: Optional[int]
         """How much this test case contributes to the total points."""
 
         self.blocker = blocker  # sig: bool
@@ -303,7 +303,7 @@ class TestCase:
         exit_status, errors = self.run_script(command)
         report["errors"].extend(errors)
 
-        if exit_status != self.returns:
+        if (self.returns is not None) and (exit_status != self.returns):
             report["errors"].append("Incorrect exit status.")
 
         return report
@@ -318,11 +318,11 @@ class TestCase:
         process.setecho(False)
         errors = []
         for action in self.script:
-            if action == ActionType.EXPECT:
+            if action.type_ == ActionType.EXPECT:
                 try:
                     _logger.debug(
                         "  expecting%s: %s",
-                        " (%ss)" % action.timeout if action.timeout > 0 else "",
+                        " (%ss)" % action.timeout if action.timeout is not None else "",
                         action.data,
                     )
                     process.expect(action.data, timeout=action.timeout)
@@ -359,7 +359,7 @@ class TestCase:
 class Action:
     """An action in a test script."""
 
-    def __init__(self, type_, data, *, timeout=0):
+    def __init__(self, type_, data, *, timeout=None):
         """Initialize this action.
 
         :sig: (ActionType, str, Optional[int]) -> None
@@ -373,8 +373,8 @@ class Action:
         self.data = data if data != "_EOF_" else pexpect.EOF  # sig: str
         """Data description of this action, what to expect or send."""
 
-        self.timeout = timeout  # sig: int
-        """Timeout duration of this action. 0 means no timeout."""
+        self.timeout = timeout  # sig: Optional[int]
+        """Timeout duration of this action."""
 
     def as_tuple(self):
         """Get this action as a tuple.
