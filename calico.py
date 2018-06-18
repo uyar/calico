@@ -65,15 +65,15 @@ def parse_spec(source):
     tests = [(k, v) for c in config for k, v in c.items()]
     for test_name, test in tests:
         run = test.get("run")
-        assert run is not None, test_name + ": no run command"
-        assert isinstance(run, str), test_name + ": run command must be string"
+        assert run is not None, f"{test_name}: no run command"
+        assert isinstance(run, str), f"{test_name}: run command must be string"
 
         script = test.get("script")
         if script is None:
             timeout = _get_yaml_comment(test, "run", "timeout")
-            assert (timeout is None) or timeout.isdigit(), (
-                test_name + ": timeout value must be integer"
-            )
+            assert (
+                timeout is None
+            ) or timeout.isdigit(), f"{test_name}: timeout value must be integer"
             script_item = (
                 "expect",
                 "_EOF_",
@@ -84,12 +84,12 @@ def parse_spec(source):
             test["script"] = []
             for step in script:
                 action, data = [(k, v) for k, v in step.items()][0]
-                assert action in ("expect", "send"), test_name + ": invalid action type"
-                assert isinstance(data, str), test_name + ": step data must be string"
+                assert action in ("expect", "send"), f"{test_name}: invalid action type"
+                assert isinstance(data, str), f"{test_name}: step data must be string"
                 timeout = _get_yaml_comment(step, action, "timeout")
-                assert (timeout is None) or timeout.isdigit(), (
-                    test_name + ": timeout value must be integer"
-                )
+                assert (
+                    timeout is None
+                ) or timeout.isdigit(), f"{test_name}: timeout value must be integer"
                 script_item = (
                     action,
                     data,
@@ -99,28 +99,28 @@ def parse_spec(source):
 
         returns = test.get("return")
         if returns is not None:
-            assert isinstance(returns, int), (
-                test_name + ": return value must be integer"
-            )
+            assert isinstance(
+                returns, int
+            ), f"{test_name}: return value must be integer"
 
         points = test.get("points")
         if points is not None:
-            assert isinstance(points, (int, float)), (
-                test_name + ": points value must be numeric"
-            )
+            assert isinstance(
+                points, (int, float)
+            ), f"{test_name}: points value must be numeric"
             total_points += test["points"]
 
         blocker = test.get("blocker")
         if blocker is not None:
-            assert isinstance(blocker, bool), (
-                test_name + ": blocker must be true or false"
-            )
+            assert isinstance(
+                blocker, bool
+            ), f"{test_name}: blocker must be true or false"
 
         visible = test.get("visible")
         if visible is not None:
-            assert isinstance(visible, bool), (
-                test_name + ": visible must be true or false"
-            )
+            assert isinstance(
+                visible, bool
+            ), f"{test_name}: visible must be true or false"
 
     return OrderedDict(tests), total_points
 
@@ -217,11 +217,8 @@ def run_spec(tests, *, quiet=False):
         _logger.debug("starting test %s", test_name)
         visible = test.get("visible", True)
         if (not quiet) and visible:
-            lead = "%(name)s %(dots)s " % {
-                "name": test_name,
-                "dots": "." * (MAX_LEN - len(test_name) + 1),
-            }
-            print(lead, end="")
+            dots = "." * (MAX_LEN - len(test_name) + 1)
+            print(f"{test_name} {dots}", end=" ")
 
         jailed = SUPPORTS_JAIL and test_name.startswith("case_")
         report[test_name] = run_test(test, jailed=jailed)
@@ -230,17 +227,13 @@ def run_spec(tests, *, quiet=False):
         points = test.get("points")
         if points is None:
             if (not quiet) and visible:
-                tail = "PASSED" if passed else "FAILED"
-                print(tail)
+                print("PASSED" if passed else "FAILED")
         else:
             report[test_name]["points"] = points if passed else 0
             earned_points += report[test_name]["points"]
             if (not quiet) and visible:
-                tail = "%(scored)d / %(over)d" % {
-                    "scored": report[test_name]["points"],
-                    "over": points,
-                }
-                print(tail)
+                scored = report[test_name]["points"]
+                print(f"{scored} / {points}")
 
         blocker = test.get("blocker", False)
         if blocker and (not passed):
@@ -321,11 +314,8 @@ def main(argv=None):
 
         if not arguments.validate:
             report = run_spec(tests, quiet=arguments.quiet)
-            summary = "Grade: %(scored)d / %(over)d" % {
-                "scored": report["points"],
-                "over": total_points,
-            }
-            print(summary)
+            scored = report["points"]
+            print(f"Grade: {scored} / {total_points}")
     except Exception as e:
         print(e, file=sys.stderr)
         sys.exit(1)
