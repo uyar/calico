@@ -46,7 +46,7 @@ class Direction(Enum):
     SEND = ("s", "send")
 
 
-class ParsedSpec:
+class ParsedSpec(OrderedDict):
     """A parsed specification."""
 
     def __init__(self):
@@ -54,9 +54,6 @@ class ParsedSpec:
 
         :sig: () -> None
         """
-        self.cases = OrderedDict()  # sig: OrderedDict
-        """Cases in this specification."""
-
         self.points = 0  # sig: int
         """Total points in this specification."""
 
@@ -66,7 +63,7 @@ class ParsedSpec:
         :sig: (TestCase) -> None
         :param case: Test case to add.
         """
-        self.cases[case.name] = case
+        super().__setitem__(case.name, case)
         self.points += case.points
 
 
@@ -110,7 +107,7 @@ class TestCase:
         self.command = command  # sig: str
         """Command to run in this test case."""
 
-        self.actions = []  # sig: List[Action]
+        self.script = []  # sig: List[Action]
         """Sequence of actions to run in this test case."""
 
         self.timeout = timeout  # sig: int
@@ -134,7 +131,7 @@ class TestCase:
         :sig: (Action) -> None
         :param action: Action to append to the script.
         """
-        self.actions.append(action)
+        self.script.append(action)
 
 
 class Action:
@@ -251,14 +248,15 @@ def parse_spec(source):
                 direction, data = [(k, v) for k, v in step.items()][0]
                 assert direction in direction_map, f"{name}: unknown direction"
                 assert isinstance(data, str), f"{name}: step data must be string"
+
+                kwargs = {}
+
                 timeout = get_comment_value(step, name=direction, field="timeout")
                 if timeout is not None:
-                    assert timeout.isdigit(), f"{name}: timeout must be integer"
-                action = Action(
-                    direction_map[direction],
-                    data,
-                    timeout=int(timeout) if timeout is not None else None,
-                )
+                    assert timeout.isdigit(), f"{name}: timeout value must be integer"
+                    kwargs["timeout"] = int(timeout)
+
+                action = Action(direction_map[direction], data, **kwargs)
                 case.add_action(action)
 
         parsed.add_case(case)
