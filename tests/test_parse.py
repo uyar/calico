@@ -229,6 +229,25 @@ def test_case_with_no_script_should_expect_eof():
     assert [s.as_tuple() for s in suite["c1"].script] == [("e", "_EOF_", None)]
 
 
+def test_case_run_with_timeout_should_generate_expect_eof_with_timeout():
+    source = """
+      - c1:
+          run: echo 1 # timeout: 5
+    """
+    suite = Suite(source)
+    assert [s.as_tuple() for s in suite["c1"].script] == [("e", "_EOF_", 5)]
+
+
+def test_case_run_with_non_numeric_timeout_value_should_raise_error():
+    source = """
+      - c1:
+          run: echo 1 # timeout: "5"
+    """
+    with raises(AssertionError) as e:
+        Suite(source)
+    assert "timeout value must be an integer" in str(e)
+
+
 def test_case_script_with_invalid_action_should_raise_error():
     source = """
       - c1:
@@ -341,26 +360,6 @@ def test_case_script_action_with_string_timeout_value_should_raise_error():
     assert "timeout value must be an integer" in str(e)
 
 
-@mark.skip
-def test_case_run_with_timeout_should_generate_expect_eof_with_timeout():
-    source = """
-      - c1:
-          run: echo 1 # timeout: 5
-    """
-    suite = Suite(source)
-    assert [s.as_tuple() for s in suite["c1"].script] == [("e", "_EOF_", 5)]
-
-
-def test_case_run_with_non_numeric_timeout_value_should_raise_error():
-    source = """
-      - c1:
-          run: echo 1 # timeout: "5"
-    """
-    with raises(AssertionError) as e:
-        Suite(source)
-    assert "timeout value must be an integer" in str(e)
-
-
 def test_total_points_should_be_sum_of_points():
     source = """
       - c1:
@@ -374,6 +373,21 @@ def test_total_points_should_be_sum_of_points():
     """
     suite = Suite(source)
     assert suite.points == 40
+
+
+def test_total_fractional_points_should_be_sum_of_points():
+    source = """
+      - c1:
+          run: echo 1
+          points: 1.5
+      - c2:
+          run: echo 2
+      - c3:
+          run: echo 3
+          points: 2.25
+    """
+    suite = Suite(source)
+    assert suite.points == 3.75
 
 
 def test_no_total_points_given_should_sum_zero():
