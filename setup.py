@@ -33,6 +33,7 @@ setup(
     install_requires=['pexpect', 'ruamel.yaml'],
     extras_require={
         'dev': [
+            'black',
             'flake8',
             'flake8-isort',
             'flake8-docstrings',
