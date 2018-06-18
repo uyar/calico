@@ -47,27 +47,67 @@ class ActionType(Enum):
     SEND = ("s", "send")
 
 
-class ParsedSpec(OrderedDict):
-    """A parsed specification."""
+class TestSuite(OrderedDict):
+    """A suite containing multiple, ordered tests."""
 
     def __init__(self):
-        """Initialize this specification.
+        """Initialize this test suite.
 
         :sig: () -> None
         """
         super().__init__()
 
         self.points = 0  # sig: int
-        """Total points in this specification."""
+        """Total points in this test suite."""
 
     def add_case(self, case):
-        """Add a case to this specification.
+        """Add a case to this test suite.
 
         :sig: (TestCase) -> None
         :param case: Test case to add.
         """
         super().__setitem__(case.name, case)
         self.points += case.points
+
+    def run(self, *, quiet=False):
+        """Run this test suite.
+
+        :sig: (Optional[bool]) -> Mapping[str, Any]
+        :param quiet: Whether to suppress progress messages.
+        :return: A report containing the results.
+        """
+        report = OrderedDict()
+        earned_points = 0
+
+        os.environ["TERM"] = "dumb"  # disable color output in terminal
+
+        for test_name, test in self.items():
+            _logger.debug("starting test %s", test_name)
+            if (not quiet) and test.visible:
+                dots = "." * (MAX_LEN - len(test_name) + 1)
+                print(f"{test_name} {dots}", end=" ")
+
+            jailed = SUPPORTS_JAIL and test_name.startswith("case_")
+            report[test_name] = run_test(test, jailed=jailed)
+            passed = len(report[test_name]["errors"]) == 0
+
+            points = test.get("points")
+            if points is None:
+                if (not quiet) and test.visible:
+                    print("PASSED" if passed else "FAILED")
+            else:
+                report[test_name]["points"] = points if passed else 0
+                earned_points += report[test_name]["points"]
+                if (not quiet) and test.visible:
+                    scored = report[test_name]["points"]
+                    print(f"{scored} / {points}")
+
+            blocker = test.get("blocker", False)
+            if blocker and (not passed):
+                break
+
+        report["points"] = earned_points
+        return report
 
 
 class TestCase:
@@ -151,7 +191,7 @@ class Action:
         self.type_ = type_  # sig: ActionType
         """Type of this action, expect or send."""
 
-        self.data = data  # sig: str
+        self.data = data if data != "_EOF_" else pexpect.EOF  # sig: str
         """Data description of this action, what to expect or send."""
 
         self.timeout = timeout  # sig: int
@@ -163,7 +203,11 @@ class Action:
         :sig: () -> Tuple[str, str, int]
         :return: Action type, data, and timeout.
         """
-        return self.type_.value[0], self.data, self.timeout
+        return (
+            self.type_.value[0],
+            self.data if self.data != pexpect.EOF else "_EOF_",
+            self.timeout,
+        )
 
 
 def get_comment_value(node, *, name, field):
@@ -189,9 +233,9 @@ def get_comment_value(node, *, name, field):
 def parse_spec(source):
     """Parse a test specification.
 
-    :sig: (str) -> ParsedSpec
+    :sig: (str) -> TestSuite
     :param source: Specification to parse.
-    :return: Parsed specification.
+    :return: Generated test suite.
     :raise AssertionError: When given spec source is invalid.
     """
     try:
@@ -205,7 +249,7 @@ def parse_spec(source):
     if not isinstance(config, CommentedSeq):
         raise AssertionError("Invalid configuration")
 
-    parsed = ParsedSpec()
+    parsed = TestSuite()
 
     action_types = {i: m for m in ActionType for i in m.value}
 
@@ -345,49 +389,6 @@ def run_test(test, *, jailed=False):
     return report
 
 
-def run_spec(tests, *, quiet=False):
-    """Run a test suite specification.
-
-    :sig: (Mapping[str, Any], bool) -> Mapping[str, Any]
-    :param tests: Test specifications to run.
-    :param quiet: Whether to suppress progress messages.
-    :return: A report containing the results.
-    """
-    report = OrderedDict()
-    earned_points = 0
-
-    os.environ["TERM"] = "dumb"  # disable color output in terminal
-
-    for test_name, test in tests.items():
-        _logger.debug("starting test %s", test_name)
-        visible = test.get("visible", True)
-        if (not quiet) and visible:
-            dots = "." * (MAX_LEN - len(test_name) + 1)
-            print(f"{test_name} {dots}", end=" ")
-
-        jailed = SUPPORTS_JAIL and test_name.startswith("case_")
-        report[test_name] = run_test(test, jailed=jailed)
-        passed = len(report[test_name]["errors"]) == 0
-
-        points = test.get("points")
-        if points is None:
-            if (not quiet) and visible:
-                print("PASSED" if passed else "FAILED")
-        else:
-            report[test_name]["points"] = points if passed else 0
-            earned_points += report[test_name]["points"]
-            if (not quiet) and visible:
-                scored = report[test_name]["points"]
-                print(f"{scored} / {points}")
-
-        blocker = test.get("blocker", False)
-        if blocker and (not passed):
-            break
-
-    report["points"] = earned_points
-    return report
-
-
 def make_parser(prog):
     """Build a parser for command-line arguments.
 
@@ -455,12 +456,12 @@ def main(argv=None):
 
         setup_logging(debug=arguments.debug, log=arguments.log)
 
-        tests, total_points = parse_spec(content)
+        suite = parse_spec(content)
 
         if not arguments.validate:
-            report = run_spec(tests, quiet=arguments.quiet)
+            report = suite.run(quiet=arguments.quiet)
             scored = report["points"]
-            print(f"Grade: {scored} / {total_points}")
+            print(f"Grade: {scored} / {suite.points}")
     except Exception as e:
         print(e, file=sys.stderr)
         sys.exit(1)
