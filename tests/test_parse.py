@@ -6,13 +6,13 @@ from calico import Suite
 def test_empty_spec_should_raise_error():
     with raises(AssertionError) as e:
         Suite("")
-    assert "No test specification" in str(e)
+    assert "no test specification" in str(e)
 
 
 def test_invalid_spec_format_should_raise_error():
     with raises(AssertionError) as e:
         Suite("!dummy")
-    assert "Invalid test specification" in str(e)
+    assert "invalid test specification" in str(e)
 
 
 def test_case_with_run_command_should_be_ok():
@@ -86,7 +86,7 @@ def test_case_fractional_return_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         Suite(source)
-    assert "return value must be integer" in str(e)
+    assert "return value must be an integer" in str(e)
 
 
 def test_case_string_return_value_should_raise_error():
@@ -97,7 +97,7 @@ def test_case_string_return_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         Suite(source)
-    assert "return value must be integer" in str(e)
+    assert "return value must be an integer" in str(e)
 
 
 def test_case_default_points_value_should_be_none():
@@ -119,7 +119,6 @@ def test_case_integer_points_value_should_be_ok():
     assert suite["c1"].points == 10
 
 
-@mark.skip
 def test_case_fractional_points_value_should_be_ok():
     source = """
       - c1:
@@ -138,7 +137,7 @@ def test_case_non_numeric_points_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         Suite(source)
-    assert "points must be integer" in str(e)
+    assert "points value must be numeric" in str(e)
 
 
 def test_case_default_blocker_value_should_be_false():
@@ -178,7 +177,7 @@ def test_case_non_boolean_blocker_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         Suite(source)
-    assert "blocker must be true or false" in str(e)
+    assert "blocker value must be true or false" in str(e)
 
 
 def test_case_default_visibility_value_should_be_true():
@@ -218,7 +217,7 @@ def test_case_non_boolean_visibility_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         Suite(source)
-    assert "visible must be true or false" in str(e)
+    assert "visibility value must be true or false" in str(e)
 
 
 def test_case_with_no_script_should_expect_eof():
@@ -262,7 +261,7 @@ def test_case_script_with_numeric_action_data_should_raise_error():
     """
     with raises(AssertionError) as e:
         Suite(source)
-    assert "action data must be string" in str(e)
+    assert "action data must be a string" in str(e)
 
 
 def test_case_script_with_action_data_eof_should_be_ok():
@@ -287,7 +286,7 @@ def test_case_script_with_multiple_action_data_should_raise_error():
     """
     with raises(AssertionError) as e:
         Suite(source)
-    assert "action data must be string" in str(e)
+    assert "action data must be a string" in str(e)
 
 
 def test_case_script_order_should_be_preserved():
@@ -327,7 +326,7 @@ def test_case_script_action_with_fractional_timeout_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         Suite(source)
-    assert "timeout must be integer" in str(e)
+    assert "timeout value must be an integer" in str(e)
 
 
 def test_case_script_action_with_string_timeout_value_should_raise_error():
@@ -339,7 +338,7 @@ def test_case_script_action_with_string_timeout_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         Suite(source)
-    assert "timeout must be integer" in str(e)
+    assert "timeout value must be an integer" in str(e)
 
 
 @mark.skip
@@ -359,7 +358,7 @@ def test_case_run_with_non_numeric_timeout_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         Suite(source)
-    assert "timeout must be integer" in str(e)
+    assert "timeout value must be an integer" in str(e)
 
 
 def test_total_points_should_be_sum_of_points():

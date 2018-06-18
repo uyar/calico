@@ -14,7 +14,7 @@ def get_comment_value(node: SpecNode, *, name: str, field: str) -> str: ...
 class ActionType(Enum): ...
 
 class Suite(OrderedDict):
-    points = ...  # type: int
+    points = ...  # type: Union[int, float]
 
     def __init__(self, spec: str) -> None: ...
 
@@ -30,7 +30,7 @@ class TestCase:
     script = ...   # type: List[Action]
     timeout = ...  # type: Optional[int]
     returns = ...  # type: Optional[int]
-    points = ...   # type: Optional[int]
+    points = ...   # type: Optional[Union[int, float]]
     blocker = ...  # type: bool
     visible = ...  # type: bool
 
@@ -41,7 +41,7 @@ class TestCase:
             command: str,
             timeout: Optional[int] = ...,
             returns: Optional[int] = ...,
-            points: Optional[int] = ...,
+            points: Optional[Union[int, float]] = ...,
             blocker: Optional[bool] = ...,
             visible: Optional[bool] = ...
     ) -> None: ...
