@@ -88,7 +88,7 @@ class TestSuite(OrderedDict):
                 print(f"{test_name} {dots}", end=" ")
 
             jailed = SUPPORTS_JAIL and test_name.startswith("case_")
-            report[test_name] = run_test(test, jailed=jailed)
+            report[test_name] = test.run(jailed=jailed)
             passed = len(report[test_name]["errors"]) == 0
 
             points = test.get("points")
