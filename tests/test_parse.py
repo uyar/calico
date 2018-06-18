@@ -51,7 +51,7 @@ def test_case_with_no_script_should_expect_eof():
           run: echo 1
     """
     config, _ = parse_spec(source)
-    assert config["c1"]["script"] == [("expect", "_EOF_", None)]
+    assert [s.as_tuple() for s in config["c1"]["script"]] == [("expect", "_EOF_", None)]
 
 
 def test_case_script_with_invalid_action_should_raise_error():
@@ -74,7 +74,7 @@ def test_case_script_with_string_action_data_should_be_ok():
             - expect: '1'
     """
     config, _ = parse_spec(source)
-    assert config["c1"]["script"] == [("expect", "1", None)]
+    assert [s.as_tuple() for s in config["c1"]["script"]] == [("expect", "1", None)]
 
 
 def test_case_script_with_numeric_action_data_should_raise_error():
@@ -97,7 +97,7 @@ def test_case_script_with_action_data_eof_should_be_ok():
             - expect: _EOF_
     """
     config, _ = parse_spec(source)
-    assert config["c1"]["script"] == [("expect", "_EOF_", None)]
+    assert [s.as_tuple() for s in config["c1"]["script"]] == [("expect", "_EOF_", None)]
 
 
 def test_case_script_with_multiple_action_data_should_raise_error():
@@ -124,7 +124,7 @@ def test_case_script_order_should_be_preserved():
             - expect: _EOF_
     """
     config, _ = parse_spec(source)
-    assert config["c1"]["script"] == [
+    assert [s.as_tuple() for s in config["c1"]["script"]] == [
         ("expect", "foo", None),
         ("send", "1", None),
         ("expect", "_EOF_", None),
@@ -139,7 +139,7 @@ def test_case_script_action_with_integer_timeout_value_should_be_ok():
             - expect: 'foo' # timeout: 5
     """
     config, _ = parse_spec(source)
-    assert config["c1"]["script"] == [("expect", "foo", 5)]
+    assert [s.as_tuple() for s in config["c1"]["script"]] == [("expect", "foo", 5)]
 
 
 def test_case_script_action_with_fractional_timeout_value_should_raise_error():
@@ -172,7 +172,7 @@ def test_case_run_with_timeout_should_generate_expect_eof_with_timeout():
           run: echo 1 # timeout: 5
     """
     config, _ = parse_spec(source)
-    assert config["c1"]["script"] == [("expect", "_EOF_", 5)]
+    assert [s.as_tuple() for s in config["c1"]["script"]] == [("expect", "_EOF_", 5)]
 
 
 def test_case_run_with_non_numeric_timeout_value_should_raise_error():

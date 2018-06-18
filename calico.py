@@ -23,7 +23,7 @@ import os
 import shutil
 import sys
 from argparse import ArgumentParser
-from collections import OrderedDict, namedtuple
+from collections import OrderedDict
 
 import pexpect
 from ruamel import yaml
@@ -38,7 +38,33 @@ SUPPORTS_JAIL = shutil.which("fakechroot") is not None
 _logger = logging.getLogger(__name__)
 
 
-ScriptStage = namedtuple("ScriptStage", ["action", "data", "timeout"])
+class Action:
+    """An action in a test script."""
+
+    def __init__(self, direction, data, timeout=None):
+        """Initialize this action.
+
+        :sig: (str, str, Optional[int]) -> None
+        :param direction: Direction of the action.
+        :param data: Communicated data during the action.
+        :param timeout: Timeout duration of the action, in seconds.
+        """
+        self.direction = direction  # sig: str
+        """Direction of this action."""
+
+        self.data = data  # sig: str
+        """Communicated data during this action."""
+
+        self.timeout = timeout  # sig: int
+        """Timeout duration of this action."""
+
+    def as_tuple(self):
+        """Get the action as a tuple.
+
+        :sig: () -> Tuple[str, str, Optional[int]]
+        :return: Direction, data, and timeout of this action.
+        """
+        return (self.direction, self.data, self.timeout)
 
 
 def get_comment_value(node, name, field):
@@ -92,7 +118,7 @@ def parse_spec(source):
             ) or timeout.isdigit(), f"{test_name}: timeout value must be integer"
 
             # If there's no script, just expect EOF.
-            stage = ScriptStage(
+            stage = Action(
                 "expect", "_EOF_", timeout=int(timeout) if timeout is not None else None
             )
             test_body["script"] = [stage]
@@ -106,7 +132,7 @@ def parse_spec(source):
                 assert (
                     timeout is None
                 ) or timeout.isdigit(), f"{test_name}: timeout value must be integer"
-                stage = ScriptStage(
+                stage = Action(
                     action, data, timeout=int(timeout) if timeout is not None else None
                 )
                 test_body["script"].append(stage)
