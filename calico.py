@@ -23,7 +23,7 @@ import os
 import shutil
 import sys
 from argparse import ArgumentParser
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 
 import pexpect
 from ruamel import yaml
@@ -33,6 +33,9 @@ MAX_LEN = 40
 SUPPORTS_JAIL = shutil.which("fakechroot") is not None
 
 _logger = logging.getLogger(__name__)
+
+
+ScriptStage = namedtuple("ScriptStage", ["action", "data", "timeout"])
 
 
 def _get_yaml_comment(node, name, field):
@@ -76,12 +79,10 @@ def parse_spec(source):
             assert (
                 timeout is None
             ) or timeout.isdigit(), f"{test_name}: timeout value must be integer"
-            script_item = (
-                "expect",
-                "_EOF_",
-                int(timeout) if timeout is not None else None,
+            stage = ScriptStage(
+                "expect", "_EOF_", timeout=int(timeout) if timeout is not None else None
             )
-            test_body["script"] = [script_item]
+            test_body["script"] = [stage]
         else:
             test_body["script"] = []
             for step in script:
@@ -92,12 +93,10 @@ def parse_spec(source):
                 assert (
                     timeout is None
                 ) or timeout.isdigit(), f"{test_name}: timeout value must be integer"
-                script_item = (
-                    action,
-                    data,
-                    int(timeout) if timeout is not None else None,
+                stage = ScriptStage(
+                    action, data, timeout=int(timeout) if timeout is not None else None
                 )
-                test_body["script"].append(script_item)
+                test_body["script"].append(stage)
 
         returns = test_body.get("return")
         if returns is not None:
