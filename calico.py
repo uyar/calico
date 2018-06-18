@@ -40,6 +40,26 @@ SUPPORTS_JAIL = shutil.which("fakechroot") is not None
 _logger = logging.getLogger(__name__)
 
 
+def get_comment_value(node, *, name, field):
+    """Get the value of a comment field.
+
+    :sig: (SpecNode, str, str) -> str
+    :param node: Node to get the comment from.
+    :param name: Name of setting in the node.
+    :param field: Name of comment field.
+    :return: Value of comment field.
+    """
+    try:
+        comment = node.ca.items[name][2].value[1:].strip()  # remove the leading hash
+    except KeyError:
+        comment = None
+    if comment is not None:
+        delim = field + ":"
+        if comment.startswith(delim):
+            return comment[len(delim) :].strip()
+    return None
+
+
 class ActionType(Enum):
     """Type of an action."""
 
@@ -84,41 +104,45 @@ class Suite(OrderedDict):
         action_types = {i: m for m in ActionType for i in m.value}
 
         tests = [(k, v) for c in config for k, v in c.items()]
-        for name, test in tests:
+        for test_name, test in tests:
             run = test.get("run")
-            assert run is not None, f"{name}: no run command"
-            assert isinstance(run, str), f"{name}: run command must be a string"
+            assert run is not None, f"{test_name}: no run command"
+            assert isinstance(run, str), f"{test_name}: run command must be a string"
 
             kwargs = {}
 
             ret = test.get("return")
             if ret is not None:
-                assert isinstance(ret, int), f"{name}: return value must be integer"
+                assert isinstance(
+                    ret, int
+                ), f"{test_name}: return value must be integer"
                 kwargs["returns"] = ret
 
             timeout = get_comment_value(test, name="run", field="timeout")
             if timeout is not None:
-                assert timeout.isdigit(), f"{name}: timeout value must be integer"
+                assert timeout.isdigit(), f"{test_name}: timeout must be integer"
                 kwargs["timeout"] = int(timeout)
 
             points = test.get("points")
             if points is not None:
-                assert isinstance(points, int), f"{name}: points value must be integer"
+                assert isinstance(points, int), f"{test_name}: points must be integer"
                 kwargs["points"] = points
 
-            blocker = test.get("blocker")
-            if blocker is not None:
+            block = test.get("blocker")
+            if block is not None:
                 assert isinstance(
-                    blocker, bool
-                ), f"{name}: blocker must be true or false"
-                kwargs["blocker"] = blocker
+                    block, bool
+                ), f"{test_name}: blocker must be true or false"
+                kwargs["blocker"] = block
 
             vis = test.get("visible")
             if vis is not None:
-                assert isinstance(vis, bool), f"{name}: visible must be true or false"
+                assert isinstance(
+                    vis, bool
+                ), f"{test_name}: visible must be true or false"
                 kwargs["visible"] = vis
 
-            case = TestCase(name, command=run, **kwargs)
+            case = TestCase(test_name, command=run, **kwargs)
 
             script = test.get("script")
             if script is None:
@@ -128,8 +152,12 @@ class Suite(OrderedDict):
             else:
                 for step in script:
                     action_type, data = [(k, v) for k, v in step.items()][0]
-                    assert action_type in action_types, f"{name}: unknown action type"
-                    assert isinstance(data, str), f"{name}: action data must be string"
+                    assert (
+                        action_type in action_types
+                    ), f"{test_name}: unknown action type"
+                    assert isinstance(
+                        data, str
+                    ), f"{test_name}: action data must be string"
 
                     kwargs = {}
 
@@ -137,7 +165,7 @@ class Suite(OrderedDict):
                     if timeout is not None:
                         assert (
                             timeout.isdigit()
-                        ), f"{name}: timeout value must be integer"
+                        ), f"{test_name}: timeout must be integer"
                         kwargs["timeout"] = int(timeout)
 
                     action = Action(action_types[action_type], data, **kwargs)
@@ -359,26 +387,6 @@ class Action:
             self.data if self.data != pexpect.EOF else "_EOF_",
             self.timeout,
         )
-
-
-def get_comment_value(node, *, name, field):
-    """Get the value of a comment field.
-
-    :sig: (SpecNode, str, str) -> str
-    :param node: Node to get the comment from.
-    :param name: Name of setting in the node.
-    :param field: Name of comment field.
-    :return: Value of comment field.
-    """
-    try:
-        comment = node.ca.items[name][2].value[1:].strip()  # remove the leading hash
-    except KeyError:
-        comment = None
-    if comment is not None:
-        delim = field + ":"
-        if comment.startswith(delim):
-            return comment[len(delim) :].strip()
-    return None
 
 
 def make_parser(prog):

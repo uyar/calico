@@ -151,7 +151,7 @@ def test_case_script_action_with_fractional_timeout_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         Suite(source)
-    assert "timeout value must be integer" in str(e)
+    assert "timeout must be integer" in str(e)
 
 
 def test_case_script_action_with_string_timeout_value_should_raise_error():
@@ -163,7 +163,7 @@ def test_case_script_action_with_string_timeout_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         Suite(source)
-    assert "timeout value must be integer" in str(e)
+    assert "timeout must be integer" in str(e)
 
 
 @mark.skip
@@ -183,7 +183,7 @@ def test_case_run_with_non_numeric_timeout_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         Suite(source)
-    assert "timeout value must be integer" in str(e)
+    assert "timeout must be integer" in str(e)
 
 
 def test_case_integer_return_value_should_be_ok():
@@ -247,7 +247,7 @@ def test_case_non_numeric_points_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         Suite(source)
-    assert "points value must be integer" in str(e)
+    assert "points must be integer" in str(e)
 
 
 def test_case_blocker_set_to_true_should_be_ok():
