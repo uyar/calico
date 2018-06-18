@@ -11,6 +11,13 @@ ConfigNode = ruamel.yaml.comments.CommentedMap
 
 class Direction(Enum): ...
 
+class Script:
+    actions = ...  # type: List[Action]
+
+    def __init__(self) -> None: ...
+
+    def add_action(self, action: Action) -> None: ...
+
 class Action:
     direction = ...  # type: Direction
     data = ...       # type: str
@@ -24,13 +31,6 @@ class Action:
     ) -> None: ...
 
     def as_tuple(self) -> Tuple[str, str, Optional[int]]: ...
-
-class Script:
-    actions = ...  # type: List[Action]
-
-    def __init__(self) -> None: ...
-
-    def add_action(self, action: Action) -> None: ...
 
 def get_comment_value(node: ConfigNode, name: str, field: str) -> str: ...
 

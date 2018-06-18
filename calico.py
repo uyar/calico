@@ -46,6 +46,26 @@ class Direction(Enum):
     SEND = ("send", "s")
 
 
+class Script:
+    """A script in a test case."""
+
+    def __init__(self):
+        """Initialize this script.
+
+        :sig: () -> None
+        """
+        self.actions = []  # sig: List[Action]
+        """Sequence of actions in this script."""
+
+    def add_action(self, action):
+        """Append an action to this script.
+
+        :sig: (Action) -> None
+        :param action: Action to append to this script.
+        """
+        self.actions.append(action)
+
+
 class Action:
     """An action in a test script."""
 
@@ -73,26 +93,6 @@ class Action:
         :return: Direction, data, and timeout of this action.
         """
         return self.direction.value[0], self.data, self.timeout
-
-
-class Script:
-    """A script in a test case."""
-
-    def __init__(self):
-        """Initialize this script.
-
-        :sig: () -> None
-        """
-        self.actions = []  # sig: List[Action]
-        """Sequence of actions in this script."""
-
-    def add_action(self, action):
-        """Append an action to this script.
-
-        :sig: (Action) -> None
-        :param action: Action to append to this script.
-        """
-        self.actions.append(action)
 
 
 def get_comment_value(node, name, field):
