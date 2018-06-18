@@ -25,6 +25,13 @@ class Action:
 
     def as_tuple(self) -> Tuple[str, str, Optional[int]]: ...
 
+class Script:
+    actions = ...  # type: List[Action]
+
+    def __init__(self) -> None: ...
+
+    def add_action(self, action: Action) -> None: ...
+
 def get_comment_value(node: ConfigNode, name: str, field: str) -> str: ...
 
 def parse_spec(

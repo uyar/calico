@@ -75,6 +75,26 @@ class Action:
         return self.direction.value[0], self.data, self.timeout
 
 
+class Script:
+    """A script in a test case."""
+
+    def __init__(self):
+        """Initialize this script.
+
+        :sig: () -> None
+        """
+        self.actions = []  # sig: List[Action]
+        """Sequence of actions in this script."""
+
+    def add_action(self, action):
+        """Append an action to this script.
+
+        :sig: (Action) -> None
+        :param action: Action to append to this script.
+        """
+        self.actions.append(action)
+
+
 def get_comment_value(node, name, field):
     """Get the value of a comment field.
 
@@ -120,8 +140,9 @@ def parse_spec(source):
         assert run is not None, f"{test_name}: no run command"
         assert isinstance(run, str), f"{test_name}: run command must be string"
 
-        script = test_body.get("script")
-        if script is None:
+        script = test_body.get("script", [])[:]
+        test_body["script"] = Script()
+        if not script:
             timeout = get_comment_value(test_body, "run", "timeout")
             assert (
                 timeout is None
@@ -133,9 +154,8 @@ def parse_spec(source):
                 "_EOF_",
                 timeout=int(timeout) if timeout is not None else None,
             )
-            test_body["script"] = [stage]
+            test_body["script"].add_action(stage)
         else:
-            test_body["script"] = []
             for step in script:
                 action, data = [(k, v) for k, v in step.items()][0]
                 assert action in dir_map, f"{test_name}: invalid action type"
@@ -149,7 +169,7 @@ def parse_spec(source):
                     data,
                     timeout=int(timeout) if timeout is not None else None,
                 )
-                test_body["script"].append(stage)
+                test_body["script"].add_action(stage)
 
         returns = test_body.get("return")
         if returns is not None:
