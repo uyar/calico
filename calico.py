@@ -63,15 +63,15 @@ class Suite(OrderedDict):
 
         self.parse(spec)
 
-    def parse(self, source):
+    def parse(self, spec):
         """Parse a test specification.
 
         :sig: (str) -> None
-        :param source: Specification to parse.
+        :param spec: Specification to parse.
         :raise AssertionError: When given spec is invalid.
         """
         try:
-            config = yaml.round_trip_load(source)
+            config = yaml.round_trip_load(spec)
         except yaml.YAMLError as e:
             raise AssertionError(str(e))
 
