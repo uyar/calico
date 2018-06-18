@@ -6,7 +6,7 @@ from collections import OrderedDict
 from enum import Enum
 from ruamel.yaml import comments
 
-ConfigNode = comments.CommentedMap
+SpecNode = comments.CommentedMap
 
 
 class ActionType(Enum): ...
@@ -67,7 +67,7 @@ class Action:
 
     def as_tuple(self) -> Tuple[str, str, int]: ...
 
-def get_comment_value(node: ConfigNode, *, name: str, field: str) -> str: ...
+def get_comment_value(node: SpecNode, *, name: str, field: str) -> str: ...
 
 def parse_spec(source: str) -> TestSuite: ...
 
