@@ -162,7 +162,7 @@ class Action:
         :sig: () -> Tuple[str, str, int]
         :return: Action type, data, and timeout.
         """
-        return self.type_.value[-1], self.data, self.timeout
+        return self.type_.value[0], self.data, self.timeout
 
 
 def get_comment_value(node, *, name, field):
