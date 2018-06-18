@@ -6,20 +6,17 @@ from setuptools import setup
 with open("README.rst") as readme_file:
     readme = readme_file.read()
 
-with open("HISTORY.rst") as history_file:
-    history = history_file.read().replace(".. :changelog:", "")
-
 setup(
     name="calico",
-    version="1.0a2",
+    version="1.0",
     description="I/O checker for command-line programs.",
-    long_description=readme + "\n\n" + history,
+    long_description=readme,
     url="https://bitbucket.org/uyar/calico",
     author="H. Turgut Uyar",
     author_email="uyar@itu.edu.tr",
     license="GPL",
     classifiers=[
-        "Development Status :: 3 - Alpha",
+        "Development Status :: 4 - Beta",
         "Environment :: Console",
         "Intended Audience :: Education",
         "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
