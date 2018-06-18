@@ -5,13 +5,13 @@ from calico import parse_spec
 
 def test_empty_spec_should_raise_error():
     with raises(AssertionError) as e:
-        parse_spec('')
-    assert 'No configuration' in str(e)
+        parse_spec("")
+    assert "No configuration" in str(e)
 
 
 def test_invalid_spec_format_should_raise_error():
     with raises(AssertionError):
-        parse_spec('!dummy')
+        parse_spec("!dummy")
 
 
 def test_case_with_run_command_should_be_ok():
@@ -20,7 +20,7 @@ def test_case_with_run_command_should_be_ok():
           run: echo 1
     """
     config, _ = parse_spec(source)
-    assert config['c1']['run'] == 'echo 1'
+    assert config["c1"]["run"] == "echo 1"
 
 
 def test_case_without_run_command_should_raise_error():
@@ -30,7 +30,7 @@ def test_case_without_run_command_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert 'no run command' in str(e)
+    assert "no run command" in str(e)
 
 
 def test_case_with_multiple_run_commands_should_raise_error():
@@ -42,7 +42,7 @@ def test_case_with_multiple_run_commands_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert 'run command must be string' in str(e)
+    assert "run command must be string" in str(e)
 
 
 def test_case_with_no_script_should_expect_eof():
@@ -51,7 +51,7 @@ def test_case_with_no_script_should_expect_eof():
           run: echo 1
     """
     config, _ = parse_spec(source)
-    assert config['c1']['script'] == [('expect', '_EOF_', None)]
+    assert config["c1"]["script"] == [("expect", "_EOF_", None)]
 
 
 def test_case_script_with_invalid_action_should_raise_error():
@@ -63,7 +63,7 @@ def test_case_script_with_invalid_action_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert 'invalid action type' in str(e)
+    assert "invalid action type" in str(e)
 
 
 def test_case_script_with_string_action_data_should_be_ok():
@@ -74,7 +74,7 @@ def test_case_script_with_string_action_data_should_be_ok():
             - expect: '1'
     """
     config, _ = parse_spec(source)
-    assert config['c1']['script'] == [('expect', '1', None)]
+    assert config["c1"]["script"] == [("expect", "1", None)]
 
 
 def test_case_script_with_numeric_action_data_should_raise_error():
@@ -86,7 +86,7 @@ def test_case_script_with_numeric_action_data_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert 'step data must be string' in str(e)
+    assert "step data must be string" in str(e)
 
 
 def test_case_script_with_action_data_eof_should_be_ok():
@@ -97,7 +97,7 @@ def test_case_script_with_action_data_eof_should_be_ok():
             - expect: _EOF_
     """
     config, _ = parse_spec(source)
-    assert config['c1']['script'] == [('expect', '_EOF_', None)]
+    assert config["c1"]["script"] == [("expect", "_EOF_", None)]
 
 
 def test_case_script_with_multiple_action_data_should_raise_error():
@@ -111,7 +111,7 @@ def test_case_script_with_multiple_action_data_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert 'step data must be string' in str(e)
+    assert "step data must be string" in str(e)
 
 
 def test_case_script_order_should_be_preserved():
@@ -124,8 +124,11 @@ def test_case_script_order_should_be_preserved():
             - expect: _EOF_
     """
     config, _ = parse_spec(source)
-    assert config['c1']['script'] == [('expect', 'foo', None), ('send', '1', None),
-                                      ('expect', '_EOF_', None)]
+    assert config["c1"]["script"] == [
+        ("expect", "foo", None),
+        ("send", "1", None),
+        ("expect", "_EOF_", None),
+    ]
 
 
 def test_case_script_action_with_integer_timeout_value_should_be_ok():
@@ -136,7 +139,7 @@ def test_case_script_action_with_integer_timeout_value_should_be_ok():
             - expect: 'foo' # timeout: 5
     """
     config, _ = parse_spec(source)
-    assert config['c1']['script'] == [('expect', 'foo', 5)]
+    assert config["c1"]["script"] == [("expect", "foo", 5)]
 
 
 def test_case_script_action_with_fractional_timeout_value_should_raise_error():
@@ -148,7 +151,7 @@ def test_case_script_action_with_fractional_timeout_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert 'timeout value must be integer' in str(e)
+    assert "timeout value must be integer" in str(e)
 
 
 def test_case_script_action_with_string_timeout_value_should_raise_error():
@@ -160,7 +163,7 @@ def test_case_script_action_with_string_timeout_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert 'timeout value must be integer' in str(e)
+    assert "timeout value must be integer" in str(e)
 
 
 def test_case_run_with_timeout_should_generate_expect_eof_with_timeout():
@@ -169,7 +172,7 @@ def test_case_run_with_timeout_should_generate_expect_eof_with_timeout():
           run: echo 1 # timeout: 5
     """
     config, _ = parse_spec(source)
-    assert config['c1']['script'] == [('expect', '_EOF_', 5)]
+    assert config["c1"]["script"] == [("expect", "_EOF_", 5)]
 
 
 def test_case_run_with_non_numeric_timeout_value_should_raise_error():
@@ -179,7 +182,7 @@ def test_case_run_with_non_numeric_timeout_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert 'timeout value must be integer' in str(e)
+    assert "timeout value must be integer" in str(e)
 
 
 def test_case_integer_return_value_should_be_ok():
@@ -189,7 +192,7 @@ def test_case_integer_return_value_should_be_ok():
           return: 0
     """
     config, _ = parse_spec(source)
-    assert config['c1']['return'] == 0
+    assert config["c1"]["return"] == 0
 
 
 def test_case_fractional_return_value_should_raise_error():
@@ -200,7 +203,7 @@ def test_case_fractional_return_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert 'return value must be integer' in str(e)
+    assert "return value must be integer" in str(e)
 
 
 def test_case_string_return_value_should_raise_error():
@@ -211,7 +214,7 @@ def test_case_string_return_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert 'return value must be integer' in str(e)
+    assert "return value must be integer" in str(e)
 
 
 def test_case_integer_points_value_should_be_ok():
@@ -221,7 +224,7 @@ def test_case_integer_points_value_should_be_ok():
           points: 10
     """
     config, _ = parse_spec(source)
-    assert config['c1']['points'] == 10
+    assert config["c1"]["points"] == 10
 
 
 def test_case_fractional_points_value_should_be_ok():
@@ -231,7 +234,7 @@ def test_case_fractional_points_value_should_be_ok():
           points: 1.5
     """
     config, _ = parse_spec(source)
-    assert config['c1']['points'] == 1.5
+    assert config["c1"]["points"] == 1.5
 
 
 def test_case_non_numeric_points_value_should_raise_error():
@@ -242,7 +245,7 @@ def test_case_non_numeric_points_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert 'points value must be numeric' in str(e)
+    assert "points value must be numeric" in str(e)
 
 
 def test_case_blocker_set_should_be_ok():
@@ -252,7 +255,7 @@ def test_case_blocker_set_should_be_ok():
           blocker: true
     """
     config, _ = parse_spec(source)
-    assert config['c1']['blocker']
+    assert config["c1"]["blocker"]
 
 
 def test_case_blocker_unset_should_be_ok():
@@ -262,7 +265,7 @@ def test_case_blocker_unset_should_be_ok():
           blocker: false
     """
     config, _ = parse_spec(source)
-    assert not config['c1']['blocker']
+    assert not config["c1"]["blocker"]
 
 
 def test_case_non_boolean_blocker_value_should_raise_error():
@@ -273,7 +276,7 @@ def test_case_non_boolean_blocker_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert 'blocker must be true or false' in str(e)
+    assert "blocker must be true or false" in str(e)
 
 
 def test_case_visible_set_should_be_ok():
@@ -283,7 +286,7 @@ def test_case_visible_set_should_be_ok():
           visible: true
     """
     config, _ = parse_spec(source)
-    assert config['c1']['visible']
+    assert config["c1"]["visible"]
 
 
 def test_case_visible_unset_should_be_ok():
@@ -293,7 +296,7 @@ def test_case_visible_unset_should_be_ok():
           visible: false
     """
     config, _ = parse_spec(source)
-    assert not config['c1']['visible']
+    assert not config["c1"]["visible"]
 
 
 def test_case_non_boolean_visibility_value_should_raise_error():
@@ -304,7 +307,7 @@ def test_case_non_boolean_visibility_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert 'visible must be true or false' in str(e)
+    assert "visible must be true or false" in str(e)
 
 
 def test_case_order_should_be_preserved():
@@ -317,7 +320,7 @@ def test_case_order_should_be_preserved():
           run: echo 1
     """
     config, _ = parse_spec(source)
-    assert [k for k in config] == ['c2', 'c3', 'c1']
+    assert [k for k in config] == ["c2", "c3", "c1"]
 
 
 def test_total_points_should_be_sum_of_points():
