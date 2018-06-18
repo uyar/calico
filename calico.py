@@ -78,7 +78,7 @@ class Suite(OrderedDict):
         """
         super().__init__()
 
-        self.points = 0  # sig: int
+        self.points = 0  # sig: Union[int, float]
         """Total points in this test suite."""
 
         self.parse(spec)
@@ -96,10 +96,10 @@ class Suite(OrderedDict):
             raise AssertionError(str(e))
 
         if spec is None:
-            raise AssertionError("No test specification")
+            raise AssertionError("no test specification")
 
         if not isinstance(spec, comments.CommentedSeq):
-            raise AssertionError("Invalid test specification")
+            raise AssertionError("invalid test specification")
 
         action_types = {i: m for m in ActionType for i in m.value}
 
@@ -115,31 +115,35 @@ class Suite(OrderedDict):
             if ret is not None:
                 assert isinstance(
                     ret, int
-                ), f"{test_name}: return value must be integer"
+                ), f"{test_name}: return value must be an integer"
                 kwargs["returns"] = ret
 
             timeout = get_comment_value(test, name="run", field="timeout")
             if timeout is not None:
-                assert timeout.isdigit(), f"{test_name}: timeout must be integer"
+                assert (
+                    timeout.isdigit()
+                ), f"{test_name}: timeout value must be an integer"
                 kwargs["timeout"] = int(timeout)
 
             points = test.get("points")
             if points is not None:
-                assert isinstance(points, int), f"{test_name}: points must be integer"
+                assert isinstance(
+                    points, (int, float)
+                ), f"{test_name}: points value must be numeric"
                 kwargs["points"] = points
 
             blocker = test.get("blocker")
             if blocker is not None:
                 assert isinstance(
                     blocker, bool
-                ), f"{test_name}: blocker must be true or false"
+                ), f"{test_name}: blocker value must be true or false"
                 kwargs["blocker"] = blocker
 
             visible = test.get("visible")
             if visible is not None:
                 assert isinstance(
                     visible, bool
-                ), f"{test_name}: visible must be true or false"
+                ), f"{test_name}: visibility value must be true or false"
                 kwargs["visible"] = visible
 
             case = TestCase(test_name, command=run, **kwargs)
@@ -157,7 +161,7 @@ class Suite(OrderedDict):
                     ), f"{test_name}: unknown action type"
                     assert isinstance(
                         data, str
-                    ), f"{test_name}: action data must be string"
+                    ), f"{test_name}: action data must be a string"
 
                     kwargs = {}
 
@@ -165,7 +169,7 @@ class Suite(OrderedDict):
                     if timeout is not None:
                         assert (
                             timeout.isdigit()
-                        ), f"{test_name}: timeout must be integer"
+                        ), f"{test_name}: timeout value must be an integer"
                         kwargs["timeout"] = int(timeout)
 
                     action = Action(action_types[action_type], data, **kwargs)
@@ -243,7 +247,7 @@ class TestCase:
                 str,
                 Optional[int],
                 Optional[int],
-                Optional[int],
+                Optional[Union[int, float]],
                 Optional[bool],
                 Optional[bool]
             ) -> None
@@ -270,7 +274,7 @@ class TestCase:
         self.returns = returns  # sig: Optional[int]
         """Expected return value of this test case."""
 
-        self.points = points  # sig: Optional[int]
+        self.points = points  # sig: Optional[Union[int, float]]
         """How much this test case contributes to the total points."""
 
         self.blocker = blocker  # sig: bool
