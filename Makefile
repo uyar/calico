@@ -1,4 +1,6 @@
-.PHONY: help clean clean-build clean-pyc clean-docs lint test test-all coverage docs release sdist
+.PHONY: help clean clean-build clean-pyc clean-docs lint test test-all coverage docs dist release
+
+release: RESPONSE = $(shell bash -c 'read -r -p "Do you want to upload [y/N]? " r; echo $$r')
 
 help:
 	@echo "clean - clean everything"
@@ -10,8 +12,8 @@ help:
 	@echo "test-all - run tests on every Python version with tox"
 	@echo "coverage - check code coverage quickly with the default Python"
 	@echo "docs - generate Sphinx HTML documentation, including API docs"
+	@echo "dist - package"
 	@echo "release - package and upload a release"
-	@echo "sdist - package"
 
 clean: clean-build clean-pyc clean-docs
 
@@ -44,6 +46,10 @@ docs:
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 
-release: clean
+dist: clean
+	python setup.py check -r -s
 	python setup.py sdist
-	twine upload dist/*
+	python setup.py bdist_wheel
+
+release: dist
+	@if [ $(RESPONSE)'' = 'y' ]; then twine upload dist/*; fi

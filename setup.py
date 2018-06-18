@@ -35,6 +35,7 @@ setup(
             "flake8-isort",
             "flake8-docstrings",
             "pygenstub",
+            "readme_renderer",
             "wheel",
             "twine",
         ],
