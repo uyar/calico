@@ -4,25 +4,22 @@ from typing import Any, List, Mapping, Optional, Tuple, Union
 
 from collections import OrderedDict
 from enum import Enum
-from ruamel.yaml import comments
 
-SpecNode = comments.CommentedMap
-
-
-def get_comment_value(node: SpecNode, *, name: str, field: str) -> str: ...
 
 class ActionType(Enum): ...
 
-class Calico(OrderedDict):
-    points = ...  # type: Union[int, float]
+class Action:
+    type_ = ...    # type: ActionType
+    data = ...     # type: str
+    timeout = ...  # type: Optional[int]
 
-    def __init__(self, spec: str) -> None: ...
-
-    def parse(self, content: str) -> None: ...
-
-    def add_case(self, case: TestCase) -> None: ...
-
-    def run(self, *, quiet: Optional[bool] = ...) -> Mapping[str, Any]: ...
+    def __init__(
+            self,
+            type_: ActionType,
+            data: str,
+            *,
+            timeout: Optional[int] = ...
+    ) -> None: ...
 
 class TestCase:
     name = ...     # type: str
@@ -56,15 +53,11 @@ class TestCase:
 
     def run_script(self, command: str) -> Tuple[int, List[str]]: ...
 
-class Action:
-    type_ = ...    # type: ActionType
-    data = ...     # type: str
-    timeout = ...  # type: Optional[int]
+class Calico(OrderedDict):
+    points = ...  # type: Union[int, float]
 
-    def __init__(
-            self,
-            type_: ActionType,
-            data: str,
-            *,
-            timeout: Optional[int] = ...
-    ) -> None: ...
+    def __init__(self) -> None: ...
+
+    def add_case(self, case: TestCase) -> None: ...
+
+    def run(self, *, quiet: Optional[bool] = ...) -> Mapping[str, Any]: ...
