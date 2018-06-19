@@ -308,6 +308,28 @@ def test_case_script_with_multiple_action_data_should_raise_error():
     assert "Action data must be a string" in str(e)
 
 
+def test_case_script_with_expect_shortcut_should_be_ok():
+    source = """
+      - c1:
+          run: echo 1
+          script:
+            - e: "1"
+    """
+    runner = parse_spec(source)
+    assert [tuple(s) for s in runner["c1"].script] == [("e", "1", None)]
+
+
+def test_case_script_with_send_shortcut_should_be_ok():
+    source = """
+      - c1:
+          run: echo 1
+          script:
+            - s: "1"
+    """
+    runner = parse_spec(source)
+    assert [tuple(s) for s in runner["c1"].script] == [("s", "1", None)]
+
+
 def test_case_script_order_should_be_preserved():
     source = """
       - c1:
