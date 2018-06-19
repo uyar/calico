@@ -29,13 +29,18 @@ def test_script_expect_with_unmatched_output_should_report_error():
 
 
 # def test_script_expect_with_extra_output_should_report_error():
-#     result = run_script('echo 1', [('expect', '_EOF_', None)])
-#     assert result == (0, ['Extra output received.'])
+#     result = run_script("echo 1", [Action(ActionType.EXPECT, "_EOF_")])
+#     assert result == (0, ["Extra output received."])
 
 
 def test_script_send_input_should_be_ok():
     result = run_script(
-        "dc", [Action(ActionType.SEND, "1 1 + p q"), Action(ActionType.EXPECT, "2")]
+        "bash -c 'read x && echo $x'",
+        [
+            Action(ActionType.SEND, "1"),
+            Action(ActionType.EXPECT, "1"),
+            Action(ActionType.EXPECT, "_EOF_"),
+        ],
     )
     assert result == (0, [])
 
