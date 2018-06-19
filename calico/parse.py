@@ -97,7 +97,7 @@ def parse_spec(content):
             ), f"{test_name}: Points value must be numeric"
             kwargs["points"] = points
 
-        blocker = test.get("blocker")
+        blocker = test.get("blocker", test.get("b"))
         if blocker is not None:
             assert isinstance(
                 blocker, bool

@@ -199,6 +199,16 @@ def test_case_non_boolean_blocker_value_should_raise_error():
     assert "Blocker value must be true or false" in str(e)
 
 
+def test_case_blocker_shortcut_should_be_ok():
+    source = """
+      - c1:
+          run: echo 1
+          b: true
+    """
+    runner = parse_spec(source)
+    assert runner["c1"].blocker
+
+
 def test_case_default_visibility_value_should_be_true():
     source = """
       - c1:
