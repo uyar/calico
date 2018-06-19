@@ -26,7 +26,7 @@ from .base import Suite
 _logger = logging.getLogger(__name__)
 
 
-def make_parser(*, prog):
+def make_parser(prog):
     """Build a parser for command line arguments.
 
     :sig: (str) -> ArgumentParser
@@ -37,24 +37,26 @@ def make_parser(*, prog):
     parser.add_argument("--version", action="version", version="%(prog)s 1.0")
 
     parser.add_argument("spec", help="test specifications file")
-    parser.add_argument("-d", "--dir", help="change to directory before doing anything")
+    parser.add_argument(
+        "-d", "--directory", help="change to directory before doing anything"
+    )
     parser.add_argument(
         "--validate", action="store_true", help="don't run tests, just validate spec"
     )
-    parser.add_argument("--quiet", action="store_true", help="disable most messages")
-    parser.add_argument("--log", action="store_true", help="create a log file")
     parser.add_argument(
-        "--debug", action="store_true", help="enable debugging messages"
+        "-q", "--quiet", action="store_true", help="print fewer messages"
     )
+    parser.add_argument("--log", help="log file")
+    parser.add_argument("--debug", action="store_true", help="enable debug messages")
     return parser
 
 
-def setup_logging(*, debug, log):
+def setup_logging(*, debug=False, log=None):
     """Set up logging levels and handlers.
 
-    :sig: (bool, bool) -> None
+    :sig: (Optional[bool], Optional[str]) -> None
     :param debug: Whether to activate debugging.
-    :param log: Whether to activate logging.
+    :param log: File to log the messages.
     """
     _logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
@@ -68,7 +70,7 @@ def setup_logging(*, debug, log):
         _logger.setLevel(logging.DEBUG)
 
         # file handler for logging messages
-        file_handler = logging.FileHandler("log.txt")
+        file_handler = logging.FileHandler(log)
         file_handler.setLevel(logging.DEBUG)
         _logger.addHandler(file_handler)
 
