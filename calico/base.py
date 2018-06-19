@@ -25,37 +25,12 @@ from collections import OrderedDict
 from enum import Enum
 
 import pexpect
-from ruamel import yaml
-from ruamel.yaml import comments
-
-
-# sigalias: SpecNode = comments.CommentedMap
 
 
 MAX_LEN = 40
 SUPPORTS_JAIL = shutil.which("fakechroot") is not None
 
 _logger = logging.getLogger(__name__)
-
-
-def get_comment_value(node, *, name, field):
-    """Get the value of a comment field.
-
-    :sig: (SpecNode, str, str) -> str
-    :param node: Node to get the comment from.
-    :param name: Name of setting in the node.
-    :param field: Name of comment field.
-    :return: Value of comment field.
-    """
-    try:
-        comment = node.ca.items[name][2].value[1:].strip()  # remove the leading hash
-    except KeyError:
-        comment = None
-    if comment is not None:
-        delim = field + ":"
-        if comment.startswith(delim):
-            return comment[len(delim) :].strip()
-    return None
 
 
 class ActionType(Enum):
@@ -65,162 +40,30 @@ class ActionType(Enum):
     SEND = ("s", "send")
 
 
-class Calico(OrderedDict):
-    """A suite containing a collection of ordered test cases."""
+class Action:
+    """An action in a test script."""
 
-    def __init__(self, spec):
-        """Initialize this test suite from a given specification.
+    def __init__(self, type_, data, *, timeout=None):
+        """Initialize this action.
 
-        :sig: (str) -> None
-        :param spec: Specification to parse.
+        :sig: (ActionType, str, Optional[int]) -> None
+        :param type_: Expect or send.
+        :param data: What to expect or send.
+        :param timeout: Timeout duration, in seconds.
         """
-        super().__init__()
+        self.type_ = type_  # sig: ActionType
+        """Type of this action, expect or send."""
 
-        self.points = 0  # sig: Union[int, float]
-        """Total points in this test suite."""
+        self.data = data if data != "_EOF_" else pexpect.EOF  # sig: str
+        """Data description of this action, what to expect or send."""
 
-        self.parse(spec)
+        self.timeout = timeout  # sig: Optional[int]
+        """Timeout duration of this action."""
 
-    def parse(self, content):
-        """Parse a test specification.
-
-        :sig: (str) -> None
-        :param content: Specification content to parse.
-        :raise AssertionError: When given specification is invalid.
-        """
-        try:
-            spec = yaml.round_trip_load(content)
-        except yaml.YAMLError as e:
-            raise AssertionError(str(e))
-
-        if spec is None:
-            raise AssertionError("no test specification")
-
-        if not isinstance(spec, comments.CommentedSeq):
-            raise AssertionError("invalid test specification")
-
-        action_types = {i: m for m in ActionType for i in m.value}
-
-        tests = [(n, t) for c in spec for n, t in c.items()]
-        for test_name, test in tests:
-            run = test.get("run")
-            assert run is not None, f"{test_name}: no run command"
-            assert isinstance(run, str), f"{test_name}: run command must be a string"
-
-            kwargs = {}
-
-            ret = test.get("return")
-            if ret is not None:
-                assert isinstance(
-                    ret, int
-                ), f"{test_name}: return value must be an integer"
-                kwargs["returns"] = ret
-
-            timeout = get_comment_value(test, name="run", field="timeout")
-            if timeout is not None:
-                assert (
-                    timeout.isdigit()
-                ), f"{test_name}: timeout value must be an integer"
-                kwargs["timeout"] = int(timeout)
-
-            points = test.get("points")
-            if points is not None:
-                assert isinstance(
-                    points, (int, float)
-                ), f"{test_name}: points value must be numeric"
-                kwargs["points"] = points
-
-            blocker = test.get("blocker")
-            if blocker is not None:
-                assert isinstance(
-                    blocker, bool
-                ), f"{test_name}: blocker value must be true or false"
-                kwargs["blocker"] = blocker
-
-            visible = test.get("visible")
-            if visible is not None:
-                assert isinstance(
-                    visible, bool
-                ), f"{test_name}: visibility value must be true or false"
-                kwargs["visible"] = visible
-
-            case = TestCase(test_name, command=run, **kwargs)
-
-            script = test.get("script")
-            if script is None:
-                # If there's no script, just expect EOF.
-                action = Action(ActionType.EXPECT, "_EOF_", timeout=case.timeout)
-                case.add_action(action)
-            else:
-                for step in script:
-                    action_type, data = [(k, v) for k, v in step.items()][0]
-                    assert (
-                        action_type in action_types
-                    ), f"{test_name}: unknown action type"
-                    assert isinstance(
-                        data, str
-                    ), f"{test_name}: action data must be a string"
-
-                    kwargs = {}
-
-                    timeout = get_comment_value(step, name=action_type, field="timeout")
-                    if timeout is not None:
-                        assert (
-                            timeout.isdigit()
-                        ), f"{test_name}: timeout value must be an integer"
-                        kwargs["timeout"] = int(timeout)
-
-                    action = Action(action_types[action_type], data, **kwargs)
-                    case.add_action(action)
-
-            self.add_case(case)
-
-    def add_case(self, case):
-        """Add a test case to this suite.
-
-        :sig: (TestCase) -> None
-        :param case: Test case to add.
-        """
-        super().__setitem__(case.name, case)
-        self.points += case.points if case.points is not None else 0
-
-    def run(self, *, quiet=False):
-        """Run this test suite.
-
-        :sig: (Optional[bool]) -> Mapping[str, Any]
-        :param quiet: Whether to suppress progress messages.
-        :return: A report containing the results.
-        """
-        report = OrderedDict()
-        earned_points = 0
-
-        os.environ["TERM"] = "dumb"  # disable color output in terminal
-
-        for test_name, test in self.items():
-            _logger.debug("starting test %s", test_name)
-            if (not quiet) and test.visible:
-                dots = "." * (MAX_LEN - len(test_name) + 1)
-                print(f"{test_name} {dots}", end=" ")
-
-            jailed = SUPPORTS_JAIL and test_name.startswith("case_")
-            report[test_name] = test.run(jailed=jailed)
-            passed = len(report[test_name]["errors"]) == 0
-
-            if test.points is None:
-                if (not quiet) and test.visible:
-                    print("PASSED" if passed else "FAILED")
-            else:
-                report[test_name]["points"] = test.points if passed else 0
-                earned_points += report[test_name]["points"]
-                if (not quiet) and test.visible:
-                    scored = report[test_name]["points"]
-                    print(f"{scored} / {test.points}")
-
-            if test.blocker and (not passed):
-                break
-
-        report["points"] = earned_points
-        return report
+    def __iter__(self):
+        yield self.type_.value[0]
+        yield self.data if self.data != pexpect.EOF else "_EOF_"
+        yield self.timeout
 
 
 class TestCase:
@@ -328,23 +171,17 @@ class TestCase:
                         action.data,
                     )
                     process.expect(action.data, timeout=action.timeout)
-                    received = (
-                        "_EOF_" if ".EOF" in repr(process.after) else process.after
-                    )
+                    received = "_EOF_" if ".EOF" in repr(process.after) else process.after
                     _logger.debug("  received: %s", received)
                 except pexpect.EOF:
-                    received = (
-                        "_EOF_" if ".EOF" in repr(process.before) else process.before
-                    )
+                    received = "_EOF_" if ".EOF" in repr(process.before) else process.before
                     _logger.debug("  received: %s", received)
                     process.close(force=True)
                     _logger.debug("FAILED: Expected output not received.")
                     errors.append("Expected output not received.")
                     break
                 except pexpect.TIMEOUT:
-                    received = (
-                        "_EOF_" if ".EOF" in repr(process.before) else process.before
-                    )
+                    received = "_EOF_" if ".EOF" in repr(process.before) else process.before
                     _logger.debug("  received: %s", received)
                     process.close(force=True)
                     _logger.debug("FAILED: Timeout exceeded.")
@@ -358,27 +195,62 @@ class TestCase:
         return process.exitstatus, errors
 
 
-class Action:
-    """An action in a test script."""
+class Calico(OrderedDict):
+    """A suite containing a collection of ordered test cases."""
 
-    def __init__(self, type_, data, *, timeout=None):
-        """Initialize this action.
+    def __init__(self):
+        """Initialize this test suite from a given specification.
 
-        :sig: (ActionType, str, Optional[int]) -> None
-        :param type_: Expect or send.
-        :param data: What to expect or send.
-        :param timeout: Timeout duration, in seconds.
+        :sig: () -> None
         """
-        self.type_ = type_  # sig: ActionType
-        """Type of this action, expect or send."""
+        super().__init__()
 
-        self.data = data if data != "_EOF_" else pexpect.EOF  # sig: str
-        """Data description of this action, what to expect or send."""
+        self.points = 0  # sig: Union[int, float]
+        """Total points in this test suite."""
 
-        self.timeout = timeout  # sig: Optional[int]
-        """Timeout duration of this action."""
+    def add_case(self, case):
+        """Add a test case to this suite.
 
-    def __iter__(self):
-        yield self.type_.value[0]
-        yield self.data if self.data != pexpect.EOF else "_EOF_"
-        yield self.timeout
+        :sig: (TestCase) -> None
+        :param case: Test case to add.
+        """
+        super().__setitem__(case.name, case)
+        self.points += case.points if case.points is not None else 0
+
+    def run(self, *, quiet=False):
+        """Run this test suite.
+
+        :sig: (Optional[bool]) -> Mapping[str, Any]
+        :param quiet: Whether to suppress progress messages.
+        :return: A report containing the results.
+        """
+        report = OrderedDict()
+        earned_points = 0
+
+        os.environ["TERM"] = "dumb"  # disable color output in terminal
+
+        for test_name, test in self.items():
+            _logger.debug("starting test %s", test_name)
+            if (not quiet) and test.visible:
+                dots = "." * (MAX_LEN - len(test_name) + 1)
+                print(f"{test_name} {dots}", end=" ")
+
+            jailed = SUPPORTS_JAIL and test_name.startswith("case_")
+            report[test_name] = test.run(jailed=jailed)
+            passed = len(report[test_name]["errors"]) == 0
+
+            if test.points is None:
+                if (not quiet) and test.visible:
+                    print("PASSED" if passed else "FAILED")
+            else:
+                report[test_name]["points"] = test.points if passed else 0
+                earned_points += report[test_name]["points"]
+                if (not quiet) and test.visible:
+                    scored = report[test_name]["points"]
+                    print(f"{scored} / {test.points}")
+
+            if test.blocker and (not passed):
+                break
+
+        report["points"] = earned_points
+        return report
