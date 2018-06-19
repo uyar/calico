@@ -31,7 +31,7 @@ class TestCase:
     command = ...  # type: str
     script = ...   # type: List[Action]
     timeout = ...  # type: Optional[int]
-    returns = ...  # type: Optional[int]
+    exits = ...    # type: Optional[int]
     points = ...   # type: Optional[Union[int, float]]
     blocker = ...  # type: bool
     visible = ...  # type: bool
@@ -42,7 +42,7 @@ class TestCase:
             *,
             command: str,
             timeout: Optional[int] = ...,
-            returns: Optional[int] = ...,
+            exits: Optional[int] = ...,
             points: Optional[Union[int, float]] = ...,
             blocker: Optional[bool] = ...,
             visible: Optional[bool] = ...

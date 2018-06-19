@@ -75,10 +75,10 @@ def parse_spec(content):
 
         kwargs = {}
 
-        ret = test.get("return")
-        if ret is not None:
-            assert isinstance(ret, int), f"{test_name}: Return value must be an integer"
-            kwargs["returns"] = ret
+        exits = test.get("exit", test.get("x"))
+        if exits is not None:
+            assert isinstance(exits, int), f"{test_name}: Exit status value must be an integer"
+            kwargs["exits"] = exits
 
         timeout = get_comment_value(test, name="run", field="timeout")
         if timeout is not None:

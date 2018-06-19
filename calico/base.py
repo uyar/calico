@@ -119,15 +119,7 @@ class TestCase:
     """A case in a test suite."""
 
     def __init__(
-        self,
-        name,
-        *,
-        command,
-        timeout=None,
-        returns=0,
-        points=None,
-        blocker=False,
-        visible=True,
+        self, name, *, command, timeout=None, exits=0, points=None, blocker=False, visible=True
     ):
         """Initialize this test case.
 
@@ -144,7 +136,7 @@ class TestCase:
         :param name: Name of the case.
         :param command: Command to run.
         :param timeout: Timeout duration, in seconds.
-        :param returns: Expected return value.
+        :param exits: Expected exit status.
         :param points: Contribution to overall points.
         :param blocker: Whether failure blocks subsequent cases.
         :param visible: Whether the test will be visible during the run.
@@ -161,8 +153,8 @@ class TestCase:
         self.timeout = timeout  # sig: Optional[int]
         """Timeout duration of this test case, in seconds."""
 
-        self.returns = returns  # sig: Optional[int]
-        """Expected return value of this test case."""
+        self.exits = exits  # sig: Optional[int]
+        """Expected exit status of this test case."""
 
         self.points = points  # sig: Optional[Union[int, float]]
         """How much this test case contributes to the total points."""
@@ -197,7 +189,7 @@ class TestCase:
         exit_status, errors = run_script(self.command, self.script)
         report["errors"].extend(errors)
 
-        if exit_status != self.returns:
+        if exit_status != self.exits:
             report["errors"].append("Incorrect exit status.")
 
         return report

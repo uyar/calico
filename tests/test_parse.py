@@ -49,7 +49,7 @@ def test_case_order_should_be_preserved():
 def test_case_without_run_command_should_raise_error():
     source = """
       - c1:
-          return: 1
+          exit: 1
     """
     with raises(AssertionError) as e:
         parse_spec(source)
@@ -68,45 +68,45 @@ def test_case_with_multiple_run_commands_should_raise_error():
     assert "Run command must be a string" in str(e)
 
 
-def test_case_default_return_value_should_be_zerd():
+def test_case_default_exit_status_should_be_zerd():
     source = """
       - c1:
           run: echo 1
     """
     runner = parse_spec(source)
-    assert runner["c1"].returns == 0
+    assert runner["c1"].exits == 0
 
 
-def test_case_integer_return_value_should_be_ok():
+def test_case_integer_exit_status_should_be_ok():
     source = """
       - c1:
           run: echo 1
-          return: 0
+          exit: 0
     """
     runner = parse_spec(source)
-    assert runner["c1"].returns == 0
+    assert runner["c1"].exits == 0
 
 
-def test_case_fractional_return_value_should_raise_error():
+def test_case_fractional_exit_status_should_raise_error():
     source = """
       - c1:
           run: echo 1
-          return: 1.5
+          exit: 1.5
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "Return value must be an integer" in str(e)
+    assert "Exit status value must be an integer" in str(e)
 
 
-def test_case_string_return_value_should_raise_error():
+def test_case_string_exit_status_should_raise_error():
     source = """
       - c1:
           run: echo 1
-          return: "0"
+          exit: "0"
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "Return value must be an integer" in str(e)
+    assert "Exit status value must be an integer" in str(e)
 
 
 def test_case_default_points_value_should_be_none():
