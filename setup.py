@@ -26,7 +26,7 @@ setup(
         "Topic :: Utilities",
     ],
     keywords="cli testing",
-    py_modules=["calico"],
+    packages=["calico"],
     install_requires=["pexpect", "ruamel.yaml"],
     extras_require={
         "dev": [
