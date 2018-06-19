@@ -83,10 +83,11 @@ def run_script(command, script):
     for action in script:
         if action.type_ == ActionType.EXPECT:
             try:
+                expecting = action.data if action.data is not pexpect.EOF else "_EOF_"
                 _logger.debug(
                     "  expecting%s: %s",
                     " (%ss)" % action.timeout if action.timeout is not None else "",
-                    action.data,
+                    expecting,
                 )
                 process.expect(action.data, timeout=action.timeout)
                 received = "_EOF_" if ".EOF" in repr(process.after) else process.after
