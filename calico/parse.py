@@ -90,7 +90,7 @@ def parse_spec(content):
             assert timeout.isdigit(), f"{test_name}: Timeout value must be an integer"
             kwargs["timeout"] = int(timeout)
 
-        points = test.get("points")
+        points = test.get("points", test.get("p"))
         if points is not None:
             assert isinstance(
                 points, (int, float)

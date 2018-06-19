@@ -149,6 +149,16 @@ def test_case_non_numeric_points_value_should_raise_error():
     assert "Points value must be numeric" in str(e)
 
 
+def test_case_points_shortcut_should_be_ok():
+    source = """
+      - c1:
+          run: echo 1
+          p: 10
+    """
+    runner = parse_spec(source)
+    assert runner["c1"].points == 10
+
+
 def test_case_default_blocker_value_should_be_false():
     source = """
       - c1:
