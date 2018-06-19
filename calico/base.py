@@ -83,31 +83,31 @@ def run_script(command, script):
     for action in script:
         if action.type_ == ActionType.EXPECT:
             try:
-                expecting = action.data if action.data is not pexpect.EOF else "_EOF_"
-                _logger.debug(
-                    "  expecting%s: %s",
-                    " (%ss)" % action.timeout if action.timeout is not None else "",
-                    expecting,
-                )
+                expecting = "_EOF_" if action.data is pexpect.EOF else f'"{action.data}"'
+                timeout = f" ({action.timeout}s)" if action.timeout is not None else ""
+                _logger.debug("  expecting%s: %s", timeout, expecting)
                 process.expect(action.data, timeout=action.timeout)
-                received = "_EOF_" if ".EOF" in repr(process.after) else process.after
+                output = process.after
+                received = "_EOF_" if ".EOF" in repr(output) else f'"{output.decode()}"'
                 _logger.debug("  received: %s", received)
             except pexpect.EOF:
-                received = "_EOF_" if ".EOF" in repr(process.before) else process.before
-                _logger.debug("  received: %s", received)
+                output = process.before
+                received = "_EOF_" if ".EOF" in repr(output) else f'"{output.decode()}"'
+                _logger.debug('  received: "%s"', received)
                 process.close(force=True)
                 _logger.debug("FAILED: Expected output not received.")
                 errors.append("Expected output not received.")
                 break
             except pexpect.TIMEOUT:
-                received = "_EOF_" if ".EOF" in repr(process.before) else process.before
-                _logger.debug("  received: %s", received)
+                output = process.before
+                received = "_EOF_" if ".EOF" in repr(output) else f'"{output.decode()}"'
+                _logger.debug('  received: "%s"', received)
                 process.close(force=True)
                 _logger.debug("FAILED: Timeout exceeded.")
                 errors.append("Timeout exceeded.")
                 break
         elif action.type_ == ActionType.SEND:
-            _logger.debug("  sending: %s", action.data)
+            _logger.debug('  sending: "%s"', action.data)
             process.sendline(action.data)
     else:
         process.close(force=True)
