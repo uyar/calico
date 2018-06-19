@@ -6,13 +6,13 @@ from calico.parse import parse_spec
 def test_empty_spec_should_raise_error():
     with raises(AssertionError) as e:
         parse_spec("")
-    assert "no test specification" in str(e)
+    assert "No test specification" in str(e)
 
 
 def test_invalid_spec_format_should_raise_error():
     with raises(AssertionError) as e:
         parse_spec("!dummy")
-    assert "invalid test specification" in str(e)
+    assert "Invalid test specification" in str(e)
 
 
 def test_case_with_run_command_should_be_ok():
@@ -44,7 +44,7 @@ def test_case_without_run_command_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "no run command" in str(e)
+    assert "No run command" in str(e)
 
 
 def test_case_with_multiple_run_commands_should_raise_error():
@@ -56,7 +56,7 @@ def test_case_with_multiple_run_commands_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "run command must be a string" in str(e)
+    assert "Run command must be a string" in str(e)
 
 
 def test_case_default_return_value_should_be_none():
@@ -86,7 +86,7 @@ def test_case_fractional_return_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "return value must be an integer" in str(e)
+    assert "Return value must be an integer" in str(e)
 
 
 def test_case_string_return_value_should_raise_error():
@@ -97,7 +97,7 @@ def test_case_string_return_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "return value must be an integer" in str(e)
+    assert "Return value must be an integer" in str(e)
 
 
 def test_case_default_points_value_should_be_none():
@@ -137,7 +137,7 @@ def test_case_non_numeric_points_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "points value must be numeric" in str(e)
+    assert "Points value must be numeric" in str(e)
 
 
 def test_case_default_blocker_value_should_be_false():
@@ -177,7 +177,7 @@ def test_case_non_boolean_blocker_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "blocker value must be true or false" in str(e)
+    assert "Blocker value must be true or false" in str(e)
 
 
 def test_case_default_visibility_value_should_be_true():
@@ -217,7 +217,7 @@ def test_case_non_boolean_visibility_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "visibility value must be true or false" in str(e)
+    assert "Visibility value must be true or false" in str(e)
 
 
 def test_case_with_no_script_should_expect_eof():
@@ -245,7 +245,7 @@ def test_case_run_with_non_numeric_timeout_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "timeout value must be an integer" in str(e)
+    assert "Timeout value must be an integer" in str(e)
 
 
 def test_case_script_with_invalid_action_should_raise_error():
@@ -257,7 +257,7 @@ def test_case_script_with_invalid_action_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "unknown action type" in str(e)
+    assert "Unknown action type" in str(e)
 
 
 def test_case_script_with_string_action_data_should_be_ok():
@@ -280,7 +280,7 @@ def test_case_script_with_numeric_action_data_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "action data must be a string" in str(e)
+    assert "Action data must be a string" in str(e)
 
 
 def test_case_script_with_action_data_eof_should_be_ok():
@@ -305,7 +305,7 @@ def test_case_script_with_multiple_action_data_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "action data must be a string" in str(e)
+    assert "Action data must be a string" in str(e)
 
 
 def test_case_script_order_should_be_preserved():
@@ -345,7 +345,7 @@ def test_case_script_action_with_fractional_timeout_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "timeout value must be an integer" in str(e)
+    assert "Timeout value must be an integer" in str(e)
 
 
 def test_case_script_action_with_string_timeout_value_should_raise_error():
@@ -357,7 +357,7 @@ def test_case_script_action_with_string_timeout_value_should_raise_error():
     """
     with raises(AssertionError) as e:
         parse_spec(source)
-    assert "timeout value must be an integer" in str(e)
+    assert "Timeout value must be an integer" in str(e)
 
 
 def test_total_points_should_be_sum_of_points():
