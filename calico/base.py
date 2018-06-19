@@ -111,6 +111,7 @@ def run_script(command, script):
             process.sendline(action.data)
     else:
         process.close(force=True)
+    _logger.debug("exit status: %d", process.exitstatus)
     return process.exitstatus, errors
 
 
