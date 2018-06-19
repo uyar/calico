@@ -1,4 +1,4 @@
-Copyright (C) 2016-2017 H. Turgut Uyar <uyar@itu.edu.tr>
+Copyright (C) 2016-2018 H. Turgut Uyar <uyar@itu.edu.tr>
 
 Calico is a utility for checking command-line programs in terms of their
 input and output. It checks whether a program generates the correct output
@@ -9,7 +9,7 @@ assignments in an introductory programming course.
 :Repository: https://bitbucket.org/uyar/calico
 :Documentation: https://calico.readthedocs.io/
 
-Calico has been tested with Python 3.4. You can install the latest version
+Calico has been tested with Python 3.6+. You can install the latest version
 from PyPI::
 
    pip install calico
