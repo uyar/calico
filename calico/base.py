@@ -73,7 +73,7 @@ class TestCase:
         *,
         command,
         timeout=None,
-        returns=None,
+        returns=0,
         points=None,
         blocker=False,
         visible=True,
@@ -146,7 +146,7 @@ class TestCase:
         exit_status, errors = self.run_script(command)
         report["errors"].extend(errors)
 
-        if (self.returns is not None) and (exit_status != self.returns):
+        if exit_status != self.returns:
             report["errors"].append("Incorrect exit status.")
 
         return report

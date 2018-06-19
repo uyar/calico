@@ -68,13 +68,13 @@ def test_case_with_multiple_run_commands_should_raise_error():
     assert "Run command must be a string" in str(e)
 
 
-def test_case_default_return_value_should_be_none():
+def test_case_default_return_value_should_be_zerd():
     source = """
       - c1:
           run: echo 1
     """
     runner = parse_spec(source)
-    assert runner["c1"].returns is None
+    assert runner["c1"].returns == 0
 
 
 def test_case_integer_return_value_should_be_ok():
