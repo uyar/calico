@@ -65,7 +65,7 @@ class ActionType(Enum):
     SEND = ("s", "send")
 
 
-class Suite(OrderedDict):
+class Calico(OrderedDict):
     """A suite containing a collection of ordered test cases."""
 
     def __init__(self, spec):

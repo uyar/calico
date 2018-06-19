@@ -20,7 +20,7 @@ import os
 import sys
 from argparse import ArgumentParser
 
-from .base import Suite
+from .base import Calico
 
 
 _logger = logging.getLogger(__name__)
@@ -95,12 +95,12 @@ def main(argv=None):
 
         setup_logging(debug=arguments.debug, log=arguments.log)
 
-        suite = Suite(content)
+        runner = Calico(content)
 
         if not arguments.validate:
-            report = suite.run(quiet=arguments.quiet)
+            report = runner.run(quiet=arguments.quiet)
             scored = report["points"]
-            print(f"Grade: {scored} / {suite.points}")
+            print(f"Grade: {scored} / {runner.points}")
     except Exception as e:
         print(e, file=sys.stderr)
         sys.exit(1)
