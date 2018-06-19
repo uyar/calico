@@ -25,6 +25,8 @@ from .base import Calico
 
 _logger = logging.getLogger(__name__)
 
+LOG_FILENAME = "calico.log"
+
 
 def make_parser(prog):
     """Build a parser for command line arguments.
@@ -37,26 +39,22 @@ def make_parser(prog):
     parser.add_argument("--version", action="version", version="%(prog)s 1.0")
 
     parser.add_argument("spec", help="test specifications file")
-    parser.add_argument(
-        "-d", "--directory", help="change to directory before doing anything"
-    )
+    parser.add_argument("-d", "--directory", help="change to directory before doing anything")
     parser.add_argument(
         "--validate", action="store_true", help="don't run tests, just validate spec"
     )
-    parser.add_argument(
-        "-q", "--quiet", action="store_true", help="print fewer messages"
-    )
-    parser.add_argument("--log", help="log file")
+    parser.add_argument("-q", "--quiet", action="store_true", help="disable most messages")
+    parser.add_argument("--log", action="store_true", help="log messages to file")
     parser.add_argument("--debug", action="store_true", help="enable debug messages")
     return parser
 
 
-def setup_logging(*, debug=False, log=None):
+def setup_logging(*, debug, log):
     """Set up logging levels and handlers.
 
-    :sig: (Optional[bool], Optional[str]) -> None
+    :sig: (bool, bool) -> None
     :param debug: Whether to activate debugging.
-    :param log: File to log the messages.
+    :param log: Whether to log messages to a file.
     """
     _logger.setLevel(logging.DEBUG if debug else logging.INFO)
 
@@ -70,7 +68,7 @@ def setup_logging(*, debug=False, log=None):
         _logger.setLevel(logging.DEBUG)
 
         # file handler for logging messages
-        file_handler = logging.FileHandler(log)
+        file_handler = logging.FileHandler(LOG_FILENAME)
         file_handler.setLevel(logging.DEBUG)
         _logger.addHandler(file_handler)
 
@@ -99,8 +97,8 @@ def main(argv=None):
 
         if not arguments.validate:
             report = runner.run(quiet=arguments.quiet)
-            scored = report["points"]
-            print(f"Grade: {scored} / {runner.points}")
+            score = report["points"]
+            print(f"Grade: {score} / {runner.points}")
     except Exception as e:
         print(e, file=sys.stderr)
         sys.exit(1)
