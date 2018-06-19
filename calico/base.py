@@ -111,7 +111,6 @@ def run_script(command, script):
             process.sendline(action.data)
     else:
         process.close(force=True)
-    _logger.debug("exit status: %d", process.exitstatus)
     return process.exitstatus, errors
 
 
@@ -189,6 +188,7 @@ class TestCase:
         exit_status, errors = run_script(self.command, self.script)
         report["errors"].extend(errors)
 
+        _logger.debug("exit status: %d (expected %d)", exit_status, self.exits)
         if exit_status != self.exits:
             report["errors"].append("Incorrect exit status.")
 
