@@ -67,7 +67,7 @@ class Action:
 def run_script(command, script):
     """Run a command and check whether it follows a script.
 
-    :sig: (str, Sequence[Action]) -> Tuple[int, List[str]]
+    :sig: (str, List[Action]) -> Tuple[int, List[str]]
     :param command: Command to run.
     :param script: Script to check against.
     :return: Exit status and errors.
@@ -75,6 +75,11 @@ def run_script(command, script):
     process = pexpect.spawn(command)
     process.setecho(False)
     errors = []
+
+    last = script[-1] if len(script) > 0 else None
+    if (last is None) or ((last.type_ != ActionType.EXPECT) and (last.data != "_EOF_")):
+        script.append(Action(ActionType.EXPECT, "_EOF_"))
+
     for action in script:
         if action.type_ == ActionType.EXPECT:
             try:

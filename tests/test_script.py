@@ -6,10 +6,20 @@ def test_script_expect_eof_should_be_ok():
     assert result == (0, [])
 
 
+def test_script_empty_should_be_ok():
+    result = run_script("true", [])
+    assert result == (0, [])
+
+
 def test_script_expect_output_should_be_ok():
     result = run_script(
         "echo 1", [Action(ActionType.EXPECT, "1"), Action(ActionType.EXPECT, "_EOF_")]
     )
+    assert result == (0, [])
+
+
+def test_script_closing_expect_feof_should_be_optional():
+    result = run_script("echo 1", [Action(ActionType.EXPECT, "1")])
     assert result == (0, [])
 
 
@@ -36,11 +46,7 @@ def test_script_expect_with_unmatched_output_should_report_error():
 def test_script_send_input_should_be_ok():
     result = run_script(
         "bash -c 'read x && echo $x'",
-        [
-            Action(ActionType.SEND, "1"),
-            Action(ActionType.EXPECT, "1"),
-            Action(ActionType.EXPECT, "_EOF_"),
-        ],
+        [Action(ActionType.SEND, "1"), Action(ActionType.EXPECT, "1")],
     )
     assert result == (0, [])
 
