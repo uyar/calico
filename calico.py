@@ -380,17 +380,10 @@ class Action:
         self.timeout = timeout  # sig: Optional[int]
         """Timeout duration of this action."""
 
-    def as_tuple(self):
-        """Get this action as a tuple.
-
-        :sig: () -> Tuple[str, str, int]
-        :return: Action type, data, and timeout.
-        """
-        return (
-            self.type_.value[0],
-            self.data if self.data != pexpect.EOF else "_EOF_",
-            self.timeout,
-        )
+    def __iter__(self):
+        yield self.type_.value[0]
+        yield self.data if self.data != pexpect.EOF else "_EOF_"
+        yield self.timeout
 
 
 def make_parser(prog):

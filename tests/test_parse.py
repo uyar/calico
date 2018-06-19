@@ -226,7 +226,7 @@ def test_case_with_no_script_should_expect_eof():
           run: echo 1
     """
     suite = Suite(source)
-    assert [s.as_tuple() for s in suite["c1"].script] == [("e", "_EOF_", None)]
+    assert [tuple(s) for s in suite["c1"].script] == [("e", "_EOF_", None)]
 
 
 def test_case_run_with_timeout_should_generate_expect_eof_with_timeout():
@@ -235,7 +235,7 @@ def test_case_run_with_timeout_should_generate_expect_eof_with_timeout():
           run: echo 1 # timeout: 5
     """
     suite = Suite(source)
-    assert [s.as_tuple() for s in suite["c1"].script] == [("e", "_EOF_", 5)]
+    assert [tuple(s) for s in suite["c1"].script] == [("e", "_EOF_", 5)]
 
 
 def test_case_run_with_non_numeric_timeout_value_should_raise_error():
@@ -268,7 +268,7 @@ def test_case_script_with_string_action_data_should_be_ok():
             - expect: "1"
     """
     suite = Suite(source)
-    assert [s.as_tuple() for s in suite["c1"].script] == [("e", "1", None)]
+    assert [tuple(s) for s in suite["c1"].script] == [("e", "1", None)]
 
 
 def test_case_script_with_numeric_action_data_should_raise_error():
@@ -291,7 +291,7 @@ def test_case_script_with_action_data_eof_should_be_ok():
             - expect: _EOF_
     """
     suite = Suite(source)
-    assert [s.as_tuple() for s in suite["c1"].script] == [("e", "_EOF_", None)]
+    assert [tuple(s) for s in suite["c1"].script] == [("e", "_EOF_", None)]
 
 
 def test_case_script_with_multiple_action_data_should_raise_error():
@@ -318,7 +318,7 @@ def test_case_script_order_should_be_preserved():
             - expect: _EOF_
     """
     suite = Suite(source)
-    assert [s.as_tuple() for s in suite["c1"].script] == [
+    assert [tuple(s) for s in suite["c1"].script] == [
         ("e", "foo", None),
         ("s", "1", None),
         ("e", "_EOF_", None),
@@ -333,7 +333,7 @@ def test_case_script_action_with_integer_timeout_value_should_be_ok():
             - expect: "foo" # timeout: 5
     """
     suite = Suite(source)
-    assert [s.as_tuple() for s in suite["c1"].script] == [("e", "foo", 5)]
+    assert [tuple(s) for s in suite["c1"].script] == [("e", "foo", 5)]
 
 
 def test_case_script_action_with_fractional_timeout_value_should_raise_error():
