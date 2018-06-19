@@ -27,7 +27,7 @@ import pexpect
 MAX_LEN = 40
 SUPPORTS_JAIL = shutil.which("fakechroot") is not None
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger("calico")
 
 
 class ActionType(Enum):
