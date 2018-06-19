@@ -30,11 +30,11 @@ command to run and what it should return. For example, if we want to check
 whether this source file can be compiled, we can write the following
 specification:
 
-.. code-block:: yaml
+.. code-block:: none
 
    - compile:
        run: gcc -c circle.c -o circle.o
-       return: 0
+       exit: 0
 
 This specification states that there is only one stage. The name of the stage
 is "compile". The command is to run the source code through the gcc compiler,
@@ -53,10 +53,10 @@ as a result of the run command.
 
 If we want to do grading, we can assign points to stages. If a stage with
 points passes, Calico will print those points in the report. Also note that
-we can leave out the ``return: 0`` clause because successful completion
+we can leave out the ``exit: 0`` clause because successful completion
 is the default desired outcome:
 
-.. code-block:: yaml
+.. code-block:: none
 
    - compile:
        run: gcc -c circle.c -o circle.o
@@ -73,7 +73,7 @@ Blockers
 As our next step, let's check whether the compiled object file can be linked.
 We add a second stage to our specification:
 
-.. code-block:: yaml
+.. code-block:: none
 
    - compile:
        run: gcc -c circle.c -o circle.o
@@ -94,7 +94,7 @@ if the source file could not be compiled and the object file was not generated.
 If a stage is marked as a blocker, all subsequent stages will be cancelled
 if that stage fails.
 
-.. code-block:: yaml
+.. code-block:: none
 
    - compile:
        run: gcc -c circle.c -o circle.o
@@ -121,7 +121,7 @@ If the compile and link stages are successful, we'll have an executable
 for I/O checking. So let's write a stage to test whether it produces
 the correct output for a simple case:
 
-.. code-block:: yaml
+.. code-block:: none
 
    - compile:
        run: gcc -c circle.c -o circle.o
@@ -134,11 +134,10 @@ the correct output for a simple case:
    - case_1:
        run: ./circle
        script:
-         - expect: 'Enter radius(.*?):\s+'
-         - send: '1'
-         - expect: 'Area: 3.14(\d*)\r\n'
+         - expect: "Enter radius(.*?):\s+"
+         - send: "1"
+         - expect: "Area: 3.14(\d*)\r\n"
          - expect: _EOF_
-       return: 0
        points: 10
 
 First of all, note the changes in the compile and link stages. Both of these
@@ -150,7 +149,7 @@ to the program. Expected output is given as a regular expression and user input
 is given as a simple string.
 
 In the example, the script first expects a prompt for entering the radius,
-then sends the string '1' (as if the user typed it in). Next, it expects
+then sends the string "1" (as if the user typed it in). Next, it expects
 that the program prints a message that contains the correct area for that
 input. Finally it expects to program to terminate without requiring further
 user input. [#eof]_ Running Calico now prints::
@@ -164,17 +163,17 @@ A stage that doesn't have a script is assumed to be non-interactive
 and it consists of a single step where it expects the program to terminate.
 
 Say that if the user types in a negative radius value we want to program
-to exit with a failure code. For that, we can use the return value option:
+to exit with a failure code. For that, we can use the exit status setting:
 
-.. code-block:: yaml
+.. code-block:: none
 
    - case_negative:
        run: ./circle
        script:
-         - expect: 'Enter radius(.*?):\s+'
-         - send: '-1'
+         - expect: "Enter radius(.*?):\s+"
+         - send: "-1"
          - expect: _EOF_
-       return: 1
+       exit: 1
        points: 30
 
 To make that test pass, the C file can be modified as follows:
@@ -211,21 +210,25 @@ and you get the following output::
    running command: gcc -c circle.c -o circle.o
      expecting: _EOF_
      received: _EOF_
+   exit status: 0 (expected 0)
    compile .................................. PASSED
    starting test link
    running command: gcc circle.o -o circle
      expecting: _EOF_
      received: _EOF_
+   exit status: 0 (expected 0)
    link ..................................... PASSED
    starting test case_1
    running command: ./circle
-     expecting: Enter radius(.*?):\s+
-     received: b'Enter radius of circle: '
+     expecting: "Enter radius(.*?):\s+"
+     received: "Enter radius of circle: "
      sending: 1
-     expecting: Area: 3.14(\d*)\r\n
-     received: b'Area: 3.141590\r\n'
+     expecting: "Area: 3.14(\d*)\r\n"
+     received: "Area: 3.141590
+   "
      expecting: _EOF_
      received: _EOF_
+   exit status: 0 (expected 0)
    case_1 ................................... 10 / 10
    Grade: 10 / 10
 
@@ -237,16 +240,16 @@ too long to respond. For such cases, we would like to limit the amount of time
 Calico should wait. Expect steps can have timeout comments that make this
 possible:
 
-.. code-block:: yaml
+.. code-block:: none
 
    - case_1:
        run: ./circle
        script:
-         - expect: 'Enter radius(.*?):\s+'
-         - send: '1'
-         - expect: 'Area: 3.14(\d*)\r\n'      # timeout: 2
+         - expect: "Enter radius(.*?):\s+"
+         - send: "1"
+         - expect: "Area: 3.14(\d*)\r\n"      # timeout: 2
          - expect: _EOF_
-       return: 0
+       exit: 0
        points: 10
 
 In this example, after sending the user input, Calico will wait 2 seconds
@@ -256,11 +259,11 @@ run Calico in debug mode::
 
    starting test case_1
    running command: ./circle
-     expecting: Enter radius(.*?):\s+
-     received: b'Enter radius of circle: '
-     sending: 1
-     expecting (2s): Area: 3.14(\d*)\r\n
-     received: b''
+     expecting: "Enter radius(.*?):\s+"
+     received: "Enter radius of circle: "
+     sending: "1"
+     expecting (2s): "Area: 3.14(\d*)\r\n"
+     received: ""
    FAILED: Timeout exceeded.
    case_1 ................................... 0 / 10
 
@@ -278,7 +281,7 @@ earlier runs, let's add an initialization stage to delete these generated
 files. But we don't want this stage to be included in the report,
 so we mark it as not visible:
 
-.. code-block:: yaml
+.. code-block:: none
 
    - init:
        run: rm -f circle.o circle
@@ -309,5 +312,5 @@ directories.
 
 .. [#eof]
 
-   _EOF_ is a marker for end-of-file and expecting _EOF_ means
+   ``_EOF_`` is a marker for end-of-file and expecting ``_EOF_`` means
    expecting program termination.
