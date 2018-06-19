@@ -13,10 +13,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Calico.  If not, see <http://www.gnu.org/licenses/>.
 
-"""Calico is a utility for checking command-line programs.
-
-For documentation, please refer to: https://calico.readthedocs.io/
-"""
+"""The module that contains the base classes for Calico."""
 
 import logging
 import os
@@ -48,7 +45,7 @@ class Action:
 
         :sig: (ActionType, str, Optional[int]) -> None
         :param type_: Expect or send.
-        :param data: What to expect or send.
+        :param data: Data to expect or send.
         :param timeout: Timeout duration, in seconds.
         """
         self.type_ = type_  # sig: ActionType
@@ -61,13 +58,14 @@ class Action:
         """Timeout duration of this action."""
 
     def __iter__(self):
+        """Get components of this action as a sequence."""
         yield self.type_.value[0]
         yield self.data if self.data != pexpect.EOF else "_EOF_"
         yield self.timeout
 
 
 class TestCase:
-    """A test case in a specification."""
+    """A case in a test suite."""
 
     def __init__(
         self,
