@@ -44,6 +44,6 @@ setup(
     },
     entry_points="""
         [console_scripts]
-        calico=calico:main
+        calico=calico.cli:main
     """,
 )
