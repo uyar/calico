@@ -249,6 +249,16 @@ def test_case_non_boolean_visibility_value_should_raise_error():
     assert "Visibility value must be true or false" in str(e)
 
 
+def test_case_visibility_shortcut_should_be_ok():
+    source = """
+      - c1:
+          run: echo 1
+          v: true
+    """
+    runner = parse_spec(source)
+    assert runner["c1"].visible
+
+
 def test_case_with_no_script_should_expect_eof():
     source = """
       - c1:

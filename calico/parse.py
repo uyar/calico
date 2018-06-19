@@ -104,7 +104,7 @@ def parse_spec(content):
             ), f"{test_name}: Blocker value must be true or false"
             kwargs["blocker"] = blocker
 
-        visible = test.get("visible")
+        visible = test.get("visible", test.get("v"))
         if visible is not None:
             assert isinstance(
                 visible, bool
