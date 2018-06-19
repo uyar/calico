@@ -1,17 +1,17 @@
-from pytest import mark, raises
+from pytest import raises
 
-from calico.base import Calico
+from calico.parse import parse_spec
 
 
 def test_empty_spec_should_raise_error():
     with raises(AssertionError) as e:
-        Calico("")
+        parse_spec("")
     assert "no test specification" in str(e)
 
 
 def test_invalid_spec_format_should_raise_error():
     with raises(AssertionError) as e:
-        Calico("!dummy")
+        parse_spec("!dummy")
     assert "invalid test specification" in str(e)
 
 
@@ -20,8 +20,8 @@ def test_case_with_run_command_should_be_ok():
       - c1:
           run: echo 1
     """
-    suite = Calico(source)
-    assert suite["c1"].command == "echo 1"
+    runner = parse_spec(source)
+    assert runner["c1"].command == "echo 1"
 
 
 def test_case_order_should_be_preserved():
@@ -33,8 +33,8 @@ def test_case_order_should_be_preserved():
       - c1:
           run: echo 1
     """
-    suite = Calico(source)
-    assert list(suite.keys()) == ["c2", "c3", "c1"]
+    runner = parse_spec(source)
+    assert list(runner.keys()) == ["c2", "c3", "c1"]
 
 
 def test_case_without_run_command_should_raise_error():
@@ -43,7 +43,7 @@ def test_case_without_run_command_should_raise_error():
           return: 1
     """
     with raises(AssertionError) as e:
-        Calico(source)
+        parse_spec(source)
     assert "no run command" in str(e)
 
 
@@ -55,7 +55,7 @@ def test_case_with_multiple_run_commands_should_raise_error():
             - echo 1b
     """
     with raises(AssertionError) as e:
-        Calico(source)
+        parse_spec(source)
     assert "run command must be a string" in str(e)
 
 
@@ -64,8 +64,8 @@ def test_case_default_return_value_should_be_none():
       - c1:
           run: echo 1
     """
-    suite = Calico(source)
-    assert suite["c1"].returns is None
+    runner = parse_spec(source)
+    assert runner["c1"].returns is None
 
 
 def test_case_integer_return_value_should_be_ok():
@@ -74,8 +74,8 @@ def test_case_integer_return_value_should_be_ok():
           run: echo 1
           return: 0
     """
-    suite = Calico(source)
-    assert suite["c1"].returns == 0
+    runner = parse_spec(source)
+    assert runner["c1"].returns == 0
 
 
 def test_case_fractional_return_value_should_raise_error():
@@ -85,7 +85,7 @@ def test_case_fractional_return_value_should_raise_error():
           return: 1.5
     """
     with raises(AssertionError) as e:
-        Calico(source)
+        parse_spec(source)
     assert "return value must be an integer" in str(e)
 
 
@@ -96,7 +96,7 @@ def test_case_string_return_value_should_raise_error():
           return: "0"
     """
     with raises(AssertionError) as e:
-        Calico(source)
+        parse_spec(source)
     assert "return value must be an integer" in str(e)
 
 
@@ -105,8 +105,8 @@ def test_case_default_points_value_should_be_none():
       - c1:
           run: echo 1
     """
-    suite = Calico(source)
-    assert suite["c1"].points is None
+    runner = parse_spec(source)
+    assert runner["c1"].points is None
 
 
 def test_case_integer_points_value_should_be_ok():
@@ -115,8 +115,8 @@ def test_case_integer_points_value_should_be_ok():
           run: echo 1
           points: 10
     """
-    suite = Calico(source)
-    assert suite["c1"].points == 10
+    runner = parse_spec(source)
+    assert runner["c1"].points == 10
 
 
 def test_case_fractional_points_value_should_be_ok():
@@ -125,8 +125,8 @@ def test_case_fractional_points_value_should_be_ok():
           run: echo 1
           points: 1.5
     """
-    suite = Calico(source)
-    assert suite["c1"].points == 1.5
+    runner = parse_spec(source)
+    assert runner["c1"].points == 1.5
 
 
 def test_case_non_numeric_points_value_should_raise_error():
@@ -136,7 +136,7 @@ def test_case_non_numeric_points_value_should_raise_error():
           points: "10"
     """
     with raises(AssertionError) as e:
-        Calico(source)
+        parse_spec(source)
     assert "points value must be numeric" in str(e)
 
 
@@ -145,8 +145,8 @@ def test_case_default_blocker_value_should_be_false():
       - c1:
           run: echo 1
     """
-    suite = Calico(source)
-    assert not suite["c1"].blocker
+    runner = parse_spec(source)
+    assert not runner["c1"].blocker
 
 
 def test_case_blocker_set_to_true_should_be_ok():
@@ -155,8 +155,8 @@ def test_case_blocker_set_to_true_should_be_ok():
           run: echo 1
           blocker: true
     """
-    suite = Calico(source)
-    assert suite["c1"].blocker
+    runner = parse_spec(source)
+    assert runner["c1"].blocker
 
 
 def test_case_blocker_set_to_false_should_be_ok():
@@ -165,8 +165,8 @@ def test_case_blocker_set_to_false_should_be_ok():
           run: echo 1
           blocker: false
     """
-    suite = Calico(source)
-    assert not suite["c1"].blocker
+    runner = parse_spec(source)
+    assert not runner["c1"].blocker
 
 
 def test_case_non_boolean_blocker_value_should_raise_error():
@@ -176,7 +176,7 @@ def test_case_non_boolean_blocker_value_should_raise_error():
           blocker: maybe
     """
     with raises(AssertionError) as e:
-        Calico(source)
+        parse_spec(source)
     assert "blocker value must be true or false" in str(e)
 
 
@@ -185,8 +185,8 @@ def test_case_default_visibility_value_should_be_true():
       - c1:
           run: echo 1
     """
-    suite = Calico(source)
-    assert suite["c1"].visible
+    runner = parse_spec(source)
+    assert runner["c1"].visible
 
 
 def test_case_visible_set_to_true_should_be_ok():
@@ -195,8 +195,8 @@ def test_case_visible_set_to_true_should_be_ok():
           run: echo 1
           visible: true
     """
-    suite = Calico(source)
-    assert suite["c1"].visible
+    runner = parse_spec(source)
+    assert runner["c1"].visible
 
 
 def test_case_visible_set_to_false_should_be_ok():
@@ -205,8 +205,8 @@ def test_case_visible_set_to_false_should_be_ok():
           run: echo 1
           visible: false
     """
-    suite = Calico(source)
-    assert not suite["c1"].visible
+    runner = parse_spec(source)
+    assert not runner["c1"].visible
 
 
 def test_case_non_boolean_visibility_value_should_raise_error():
@@ -216,7 +216,7 @@ def test_case_non_boolean_visibility_value_should_raise_error():
           visible: maybe
     """
     with raises(AssertionError) as e:
-        Calico(source)
+        parse_spec(source)
     assert "visibility value must be true or false" in str(e)
 
 
@@ -225,8 +225,8 @@ def test_case_with_no_script_should_expect_eof():
       - c1:
           run: echo 1
     """
-    suite = Calico(source)
-    assert [tuple(s) for s in suite["c1"].script] == [("e", "_EOF_", None)]
+    runner = parse_spec(source)
+    assert [tuple(s) for s in runner["c1"].script] == [("e", "_EOF_", None)]
 
 
 def test_case_run_with_timeout_should_generate_expect_eof_with_timeout():
@@ -234,8 +234,8 @@ def test_case_run_with_timeout_should_generate_expect_eof_with_timeout():
       - c1:
           run: echo 1 # timeout: 5
     """
-    suite = Calico(source)
-    assert [tuple(s) for s in suite["c1"].script] == [("e", "_EOF_", 5)]
+    runner = parse_spec(source)
+    assert [tuple(s) for s in runner["c1"].script] == [("e", "_EOF_", 5)]
 
 
 def test_case_run_with_non_numeric_timeout_value_should_raise_error():
@@ -244,7 +244,7 @@ def test_case_run_with_non_numeric_timeout_value_should_raise_error():
           run: echo 1 # timeout: "5"
     """
     with raises(AssertionError) as e:
-        Calico(source)
+        parse_spec(source)
     assert "timeout value must be an integer" in str(e)
 
 
@@ -256,7 +256,7 @@ def test_case_script_with_invalid_action_should_raise_error():
             - wait: 1
     """
     with raises(AssertionError) as e:
-        Calico(source)
+        parse_spec(source)
     assert "unknown action type" in str(e)
 
 
@@ -267,8 +267,8 @@ def test_case_script_with_string_action_data_should_be_ok():
           script:
             - expect: "1"
     """
-    suite = Calico(source)
-    assert [tuple(s) for s in suite["c1"].script] == [("e", "1", None)]
+    runner = parse_spec(source)
+    assert [tuple(s) for s in runner["c1"].script] == [("e", "1", None)]
 
 
 def test_case_script_with_numeric_action_data_should_raise_error():
@@ -279,7 +279,7 @@ def test_case_script_with_numeric_action_data_should_raise_error():
             - expect: 1
     """
     with raises(AssertionError) as e:
-        Calico(source)
+        parse_spec(source)
     assert "action data must be a string" in str(e)
 
 
@@ -290,8 +290,8 @@ def test_case_script_with_action_data_eof_should_be_ok():
           script:
             - expect: _EOF_
     """
-    suite = Calico(source)
-    assert [tuple(s) for s in suite["c1"].script] == [("e", "_EOF_", None)]
+    runner = parse_spec(source)
+    assert [tuple(s) for s in runner["c1"].script] == [("e", "_EOF_", None)]
 
 
 def test_case_script_with_multiple_action_data_should_raise_error():
@@ -304,7 +304,7 @@ def test_case_script_with_multiple_action_data_should_raise_error():
                 - "1b"
     """
     with raises(AssertionError) as e:
-        Calico(source)
+        parse_spec(source)
     assert "action data must be a string" in str(e)
 
 
@@ -317,8 +317,8 @@ def test_case_script_order_should_be_preserved():
             - send: "1"
             - expect: _EOF_
     """
-    suite = Calico(source)
-    assert [tuple(s) for s in suite["c1"].script] == [
+    runner = parse_spec(source)
+    assert [tuple(s) for s in runner["c1"].script] == [
         ("e", "foo", None),
         ("s", "1", None),
         ("e", "_EOF_", None),
@@ -332,8 +332,8 @@ def test_case_script_action_with_integer_timeout_value_should_be_ok():
           script:
             - expect: "foo" # timeout: 5
     """
-    suite = Calico(source)
-    assert [tuple(s) for s in suite["c1"].script] == [("e", "foo", 5)]
+    runner = parse_spec(source)
+    assert [tuple(s) for s in runner["c1"].script] == [("e", "foo", 5)]
 
 
 def test_case_script_action_with_fractional_timeout_value_should_raise_error():
@@ -344,7 +344,7 @@ def test_case_script_action_with_fractional_timeout_value_should_raise_error():
             - expect: "foo" # timeout: 4.5
     """
     with raises(AssertionError) as e:
-        Calico(source)
+        parse_spec(source)
     assert "timeout value must be an integer" in str(e)
 
 
@@ -356,7 +356,7 @@ def test_case_script_action_with_string_timeout_value_should_raise_error():
             - expect: "foo" # timeout: "5"
     """
     with raises(AssertionError) as e:
-        Calico(source)
+        parse_spec(source)
     assert "timeout value must be an integer" in str(e)
 
 
@@ -371,8 +371,8 @@ def test_total_points_should_be_sum_of_points():
           run: echo 3
           points: 25
     """
-    suite = Calico(source)
-    assert suite.points == 40
+    runner = parse_spec(source)
+    assert runner.points == 40
 
 
 def test_total_fractional_points_should_be_sum_of_points():
@@ -386,8 +386,8 @@ def test_total_fractional_points_should_be_sum_of_points():
           run: echo 3
           points: 2.25
     """
-    suite = Calico(source)
-    assert suite.points == 3.75
+    runner = parse_spec(source)
+    assert runner.points == 3.75
 
 
 def test_no_total_points_given_should_sum_zero():
@@ -397,5 +397,5 @@ def test_no_total_points_given_should_sum_zero():
       - c2:
           run: echo 2
     """
-    suite = Calico(source)
-    assert suite.points == 0
+    runner = parse_spec(source)
+    assert runner.points == 0
