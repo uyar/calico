@@ -20,7 +20,7 @@ import os
 import sys
 from argparse import ArgumentParser
 
-from .base import Calico
+from .parse import parse_spec
 
 
 _logger = logging.getLogger(__name__)
@@ -93,7 +93,7 @@ def main(argv=None):
 
         setup_logging(debug=arguments.debug, log=arguments.log)
 
-        runner = Calico(content)
+        runner = parse_spec(content)
 
         if not arguments.validate:
             report = runner.run(quiet=arguments.quiet)
