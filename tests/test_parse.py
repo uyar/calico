@@ -1,6 +1,6 @@
 from pytest import mark, raises
 
-from calico import Suite
+from calico.base import Suite
 
 
 def test_empty_spec_should_raise_error():
