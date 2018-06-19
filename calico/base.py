@@ -100,7 +100,7 @@ def run_script(command, script):
                 _logger.debug("FAILED: Timeout exceeded.")
                 errors.append("Timeout exceeded.")
                 break
-        elif action == ActionType.SEND:
+        elif action.type_ == ActionType.SEND:
             _logger.debug("  sending: %s", action.data)
             process.sendline(action.data)
     else:
@@ -187,7 +187,7 @@ class TestCase:
         command = f"{jail_prefix}{self.command}"
         _logger.debug("running command: %s", command)
 
-        exit_status, errors = self.run_script(command)
+        exit_status, errors = run_script(self.command, self.script)
         report["errors"].extend(errors)
 
         if exit_status != self.returns:
