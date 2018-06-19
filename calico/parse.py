@@ -74,7 +74,7 @@ def parse_spec(content):
 
     tests = [(n, t) for c in spec for n, t in c.items()]
     for test_name, test in tests:
-        run = test.get("run")
+        run = test.get("run", test.get("r"))
         assert run is not None, f"{test_name}: No run command"
         assert isinstance(run, str), f"{test_name}: Run command must be a string"
 

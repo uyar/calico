@@ -24,6 +24,15 @@ def test_case_with_run_command_should_be_ok():
     assert runner["c1"].command == "echo 1"
 
 
+def test_case_with_run_shortcut_should_be_ok():
+    source = """
+      - c1:
+          r: echo 1
+    """
+    runner = parse_spec(source)
+    assert runner["c1"].command == "echo 1"
+
+
 def test_case_order_should_be_preserved():
     source = """
       - c2:
