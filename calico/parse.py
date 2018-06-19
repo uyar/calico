@@ -15,8 +15,6 @@
 
 """The module that contains specification parsing components."""
 
-import logging
-
 from ruamel import yaml
 from ruamel.yaml import comments
 
@@ -24,9 +22,6 @@ from .base import Action, ActionType, Calico, TestCase
 
 
 # sigalias: SpecNode = comments.CommentedMap
-
-
-_logger = logging.getLogger(__name__)
 
 
 def get_comment_value(node, *, name, field):

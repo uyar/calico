@@ -23,7 +23,7 @@ from argparse import ArgumentParser
 from .parse import parse_spec
 
 
-_logger = logging.getLogger(__name__)
+_logger = logging.getLogger("calico")
 
 LOG_FILENAME = "calico.log"
 
