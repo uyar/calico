@@ -11,7 +11,7 @@ setup(
     version="1.0",
     description="I/O checker for command-line programs.",
     long_description=readme,
-    url="https://bitbucket.org/uyar/calico",
+    url="https://github.com/itublg/calico",
     author="H. Turgut Uyar",
     author_email="uyar@itu.edu.tr",
     license="GPL",

@@ -6,7 +6,7 @@ when given some inputs. It was developed to evaluate simple programming
 assignments in an introductory programming course.
 
 :PyPI: https://pypi.python.org/pypi/calico/
-:Repository: https://bitbucket.org/uyar/calico
+:Repository: https://github.com/itublg/calico
 :Documentation: https://calico.readthedocs.io/
 
 Calico has been tested with Python 3.6+. You can install the latest version
