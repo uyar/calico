@@ -39,14 +39,20 @@ def make_parser(prog):
     parser.add_argument("--version", action="version", version="%(prog)s 1.0")
 
     parser.add_argument("spec", help="test specifications file")
-    parser.add_argument("-d", "--directory", help="change to directory before doing anything")
+    parser.add_argument(
+        "-d", "--directory", help="change to directory before doing anything"
+    )
     parser.add_argument(
         "--validate", action="store_true", help="don't run tests, just validate spec"
     )
-    parser.add_argument("-q", "--quiet", action="store_true", help="disable most messages")
+    parser.add_argument(
+        "-q", "--quiet", action="store_true", help="disable most messages"
+    )
     parser.add_argument("--log", action="store_true", help="log messages to file")
     parser.add_argument("--debug", action="store_true", help="enable debug messages")
-    parser.add_argument("-t", "--tests", nargs="*", help="specify which tests cases will run")
+    parser.add_argument(
+        "-t", "--tests", nargs="*", help="specify which tests cases will run"
+    )
     return parser
 
 
