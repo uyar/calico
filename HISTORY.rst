@@ -1,10 +1,10 @@
 History
 =======
 
-1.0 (unreleased)
+1.0 (2018-07-26)
 ----------------
 
-- Added variable substitutions for script data.
+- Added support for variable substitutions in script data.
 - Added shortcuts for options in the specification file.
 - Added --version option to command line arguments.
 - Improved logging messages.
