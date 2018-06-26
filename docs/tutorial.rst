@@ -300,13 +300,6 @@ Running Calico will leave out the "init" stage::
 
 Running in debug mode will include the details about the hidden stages.
 
-.. note::
-
-   To make the specification file shorter, you can use the following
-   shortcuts for the keywords: ``r`` for ``run``, ``x`` for ``expect``,
-   ``s`` for ``send``, ``x`` for ``exit``, ``b`` for ``blocker``,
-   ``v`` for ``visible``, ``p`` for ``points``.
-
 Defining variables
 ------------------
 
@@ -332,6 +325,13 @@ prompts- you can define variables in the special ``_define`` section:
          - expect: %(prompt)s
          - send: "0"
          ...
+
+.. note::
+
+   To make the specification file shorter, you can use the following
+   shortcuts for the keywords: ``r`` for ``run``, ``x`` for ``expect``,
+   ``s`` for ``send``, ``x`` for ``exit``, ``b`` for ``blocker``,
+   ``v`` for ``visible``, ``p`` for ``points``.
 
 Jailing tests
 -------------
