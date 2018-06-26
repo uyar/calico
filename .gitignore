@@ -9,6 +9,7 @@
 .vagrant/
 
 _build/
+build/
 dist/
 
 demo/
