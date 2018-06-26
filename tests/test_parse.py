@@ -81,10 +81,10 @@ def test_case_integer_exit_status_should_be_ok():
     source = """
       - c1:
           run: echo 1
-          exit: 0
+          exit: 2
     """
     runner = parse_spec(source)
-    assert runner["c1"].exits == 0
+    assert runner["c1"].exits == 2
 
 
 def test_case_fractional_exit_status_should_raise_error():
@@ -107,6 +107,16 @@ def test_case_string_exit_status_should_raise_error():
     with raises(AssertionError) as e:
         parse_spec(source)
     assert "Exit status value must be an integer" in str(e)
+
+
+def test_case_exit_shortcut_should_be_ok():
+    source = """
+      - c1:
+          r: echo 1
+          x: 2
+    """
+    runner = parse_spec(source)
+    assert runner["c1"].exits == 2
 
 
 def test_case_default_points_value_should_be_none():
