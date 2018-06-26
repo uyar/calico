@@ -233,7 +233,7 @@ class Calico(OrderedDict):
         super().__setitem__(case.name, case)
         self.points += case.points if case.points is not None else 0
 
-    def run(self, *, quiet=False):
+    def run(self, *, tests=None, quiet=False):
         """Run this test suite.
 
         :sig: (Optional[bool]) -> Mapping[str, Any]
@@ -244,9 +244,9 @@ class Calico(OrderedDict):
         earned_points = 0
 
         os.environ["TERM"] = "dumb"  # disable color output in terminal
-
+        tests = [] if tests is None else tests
         for test_name, test in self.items():
-            if test_name[0] == "_":
+            if test_name[0] == "_" or (test_name.startswith("case") and test_name not in tests):
                 continue
 
             _logger.debug("starting test %s", test_name)
