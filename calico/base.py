@@ -236,7 +236,8 @@ class Calico(OrderedDict):
     def run(self, *, tests=None, quiet=False):
         """Run this test suite.
 
-        :sig: (Optional[bool]) -> Mapping[str, Any]
+        :sig: (Optional[bool], Optional[List[str]]) -> Mapping[str, Any]
+        :param tests: Tests to include in the run.
         :param quiet: Whether to suppress progress messages.
         :return: A report containing the results.
         """
