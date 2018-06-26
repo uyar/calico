@@ -246,7 +246,9 @@ class Calico(OrderedDict):
         os.environ["TERM"] = "dumb"  # disable color output in terminal
         tests = [] if tests is None else tests
         for test_name, test in self.items():
-            if test_name[0] == "_" or (test_name.startswith("case") and test_name not in tests):
+            if test_name[0] == "_" or (
+                test_name.startswith("case") and test_name not in tests
+            ):
                 continue
 
             _logger.debug("starting test %s", test_name)
