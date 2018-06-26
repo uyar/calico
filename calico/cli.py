@@ -46,6 +46,7 @@ def make_parser(prog):
     parser.add_argument("-q", "--quiet", action="store_true", help="disable most messages")
     parser.add_argument("--log", action="store_true", help="log messages to file")
     parser.add_argument("--debug", action="store_true", help="enable debug messages")
+    parser.add_argument("-t", "--tests", nargs="*", help="specify which tests cases will run")
     return parser
 
 
@@ -96,7 +97,7 @@ def main(argv=None):
         runner = parse_spec(content)
 
         if not arguments.validate:
-            report = runner.run(quiet=arguments.quiet)
+            report = runner.run(tests=arguments.tests, quiet=arguments.quiet)
             score = report["points"]
             print(f"Grade: {score} / {runner.points}")
     except Exception as e:
