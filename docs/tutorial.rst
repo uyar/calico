@@ -329,7 +329,7 @@ prompts- you can define variables in the special ``_define`` section:
 .. note::
 
    To make the specification file shorter, you can use the following
-   shortcuts for the keywords: ``r`` for ``run``, ``x`` for ``expect``,
+   shortcuts for the keywords: ``r`` for ``run``, ``e`` for ``expect``,
    ``s`` for ``send``, ``x`` for ``exit``, ``b`` for ``blocker``,
    ``v`` for ``visible``, ``p`` for ``points``.
 
