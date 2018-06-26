@@ -245,12 +245,12 @@ class Calico(OrderedDict):
         earned_points = 0
 
         os.environ["TERM"] = "dumb"  # disable color output in terminal
-        
-        for test_name, test in self.items():
-            if test_name[0] == "_" or (
-                tests is not None and test_name.startswith("case") and test_name not in tests
-            ):
-                continue
+
+        test_names = (
+            tests if tests is not None else [n for n in self.keys() if n[0] != "_"]
+        )
+        for test_name in test_names:
+            test = self.get(test_name)
 
             _logger.debug("starting test %s", test_name)
             if (not quiet) and test.visible:
