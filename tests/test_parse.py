@@ -470,3 +470,13 @@ def test_no_total_points_given_should_sum_zero():
     """
     runner = parse_spec(source)
     assert runner.points == 0
+
+
+def test_case_define_variable_should_be_ok():
+    source = """
+      - _define:
+          vars:
+            foo: bar
+    """
+    runner = parse_spec(source)
+    assert runner["_define_vars"]["foo"] == "bar"
