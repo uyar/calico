@@ -23,7 +23,9 @@ class Action:
 
 def run_script(
         command: str,
-        script: List[Action]
+        script: List[Action],
+        *,
+        defs: Optional[Mapping] = ...
 ) -> Tuple[int, List[str]]: ...
 
 class TestCase:
@@ -53,6 +55,7 @@ class TestCase:
     def run(
             self,
             *,
+            defs: Optional[Mapping] = ...,
             jailed: Optional[bool] = ...
     ) -> Mapping[str, Union[str, List[str]]]: ...
 

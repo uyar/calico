@@ -1,3 +1,7 @@
+- _define:
+    vars:
+      prompt1: "Enter radius(.*?):\\s+"
+
 - init:
     run: rm -f circle.o circle
     visible: false
@@ -13,8 +17,8 @@
 - case_1:
     run: ./circle
     script:
-      - expect: 'Enter radius(.*?):\s+'  # timeout: 1
-      - send: '1'
+      - expect: "%(prompt1)s"            # timeout: 1
+      - send: "1"
       - expect: 'Area: 3.14(\d*)\r\n'    # timeout: 1
       - expect: _EOF_                    # timeout: 1
     exit: 0
@@ -23,8 +27,8 @@
 - case_0:
     run: ./circle
     script:
-      - expect: 'Enter radius(.*?):\s+'  # timeout: 1
-      - send: '0'
+      - expect: "%(prompt1)s"            # timeout: 1
+      - send: "0"
       - expect: 'Area: 0.00(\d*)\r\n'    # timeout: 1
       - expect: _EOF_                    # timeout: 1
     exit: 0
@@ -33,8 +37,8 @@
 - case_negative:
     run: ./circle
     script:
-      - expect: 'Enter radius(.*?):\s+'  # timeout: 1
-      - send: '-1'
+      - expect: "%(prompt1)s"            # timeout: 1
+      - send: "-1"
       - expect: _EOF_                    # timeout: 1
     exit: 1
     points: 30

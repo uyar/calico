@@ -64,14 +64,17 @@ class Action:
         yield self.timeout
 
 
-def run_script(command, script):
+def run_script(command, script, *, defs=None):
     """Run a command and check whether it follows a script.
 
-    :sig: (str, List[Action]) -> Tuple[int, List[str]]
+    :sig: (str, List[Action], Optional[Mapping]) -> Tuple[int, List[str]]
     :param command: Command to run.
     :param script: Script to check against.
+    :param defs: Variable substitutions.
     :return: Exit status and errors.
     """
+    defs = defs if defs is not None else {}
+
     process = pexpect.spawn(command)
     process.setecho(False)
     errors = []
@@ -81,9 +84,13 @@ def run_script(command, script):
         script.append(Action(ActionType.EXPECT, "_EOF_"))
 
     for action in script:
+        if action.data is not pexpect.EOF:
+            action.data = action.data % defs
         if action.type_ == ActionType.EXPECT:
             try:
-                expecting = "_EOF_" if action.data is pexpect.EOF else f'"{action.data}"'
+                expecting = (
+                    "_EOF_" if action.data is pexpect.EOF else f'"{action.data}"'
+                )
                 timeout = f" ({action.timeout}s)" if action.timeout is not None else ""
                 _logger.debug("  expecting%s: %s", timeout, expecting)
                 process.expect(action.data, timeout=action.timeout)
@@ -118,7 +125,15 @@ class TestCase:
     """A case in a test suite."""
 
     def __init__(
-        self, name, *, command, timeout=None, exits=0, points=None, blocker=False, visible=True
+        self,
+        name,
+        *,
+        command,
+        timeout=None,
+        exits=0,
+        points=None,
+        blocker=False,
+        visible=True,
     ):
         """Initialize this test case.
 
@@ -172,10 +187,11 @@ class TestCase:
         """
         self.script.append(action)
 
-    def run(self, *, jailed=False):
+    def run(self, *, defs=None, jailed=False):
         """Run this test and produce a report.
 
-        :sig: (Optional[bool]) -> Mapping[str, Union[str, List[str]]]
+        :sig: (Optional[Mapping], Optional[bool]) -> Mapping[str, Union[str, List[str]]]
+        :param defs: Variable substitutions.
         :param jailed: Whether to jail the command to the current directory.
         :return: Result report of the test.
         """
@@ -185,7 +201,7 @@ class TestCase:
         command = f"{jail_prefix}{self.command}"
         _logger.debug("running command: %s", command)
 
-        exit_status, errors = run_script(self.command, self.script)
+        exit_status, errors = run_script(self.command, self.script, defs=defs)
         report["errors"].extend(errors)
 
         _logger.debug("exit status: %d (expected %d)", exit_status, self.exits)
@@ -230,13 +246,16 @@ class Calico(OrderedDict):
         os.environ["TERM"] = "dumb"  # disable color output in terminal
 
         for test_name, test in self.items():
+            if test_name[0] == "_":
+                continue
+
             _logger.debug("starting test %s", test_name)
             if (not quiet) and test.visible:
                 dots = "." * (MAX_LEN - len(test_name) + 1)
                 print(f"{test_name} {dots}", end=" ")
 
             jailed = SUPPORTS_JAIL and test_name.startswith("case_")
-            report[test_name] = test.run(jailed=jailed)
+            report[test_name] = test.run(defs=self.get("_define_vars"), jailed=jailed)
             passed = len(report[test_name]["errors"]) == 0
 
             if test.points is None:

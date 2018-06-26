@@ -4,9 +4,10 @@ History
 1.0 (unreleased)
 ----------------
 
-- Improved logging messages.
+- Added variable substitutions for script data.
 - Added shortcuts for options in the specification file.
 - Added --version option to command line arguments.
+- Improved logging messages.
 
 1.0a2 (2017-05-04)
 ------------------

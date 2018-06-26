@@ -69,6 +69,11 @@ def parse_spec(content):
 
     tests = [(n, t) for c in spec for n, t in c.items()]
     for test_name, test in tests:
+        if test_name[0] == "_":
+            for section, section_value in test.items():
+                runner[test_name + "_" + section] = section_value
+            continue
+
         run = test.get("run", test.get("r"))
         assert run is not None, f"{test_name}: No run command"
         assert isinstance(run, str), f"{test_name}: Run command must be a string"
@@ -77,7 +82,9 @@ def parse_spec(content):
 
         exits = test.get("exit", test.get("x"))
         if exits is not None:
-            assert isinstance(exits, int), f"{test_name}: Exit status value must be an integer"
+            assert isinstance(
+                exits, int
+            ), f"{test_name}: Exit status value must be an integer"
             kwargs["exits"] = exits
 
         timeout = get_comment_value(test, name="run", field="timeout")
@@ -117,13 +124,17 @@ def parse_spec(content):
             for step in script:
                 action_type, data = [(k, v) for k, v in step.items()][0]
                 assert action_type in action_types, f"{test_name}: Unknown action type"
-                assert isinstance(data, str), f"{test_name}: Action data must be a string"
+                assert isinstance(
+                    data, str
+                ), f"{test_name}: Action data must be a string"
 
                 kwargs = {}
 
                 timeout = get_comment_value(step, name=action_type, field="timeout")
                 if timeout is not None:
-                    assert timeout.isdigit(), f"{test_name}: Timeout value must be an integer"
+                    assert (
+                        timeout.isdigit()
+                    ), f"{test_name}: Timeout value must be an integer"
                     kwargs["timeout"] = int(timeout)
 
                 action = Action(action_types[action_type], data, **kwargs)
