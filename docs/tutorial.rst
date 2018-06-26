@@ -300,6 +300,32 @@ Running Calico will leave out the "init" stage::
 
 Running in debug mode will include the details about the hidden stages.
 
+Defining variables
+------------------
+
+In scripts, in order not to repeatedly type the same data i, such as expected
+prompts, you can define variables in the special ``_define`` section:
+
+.. code-block:: none
+
+   - _define:
+       vars:
+         prompt: "Enter radius(.*?):\\s+"
+
+   - case_1:
+       run: ./circle
+       script:
+         - expect: %(prompt)s
+         - send: "1"
+         ...
+
+   - case_2:
+       run: ./circle
+       script:
+         - expect: %(prompt)s
+         - send: "0"
+         ...
+
 Jailing tests
 -------------
 
