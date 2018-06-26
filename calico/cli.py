@@ -51,7 +51,7 @@ def make_parser(prog):
     parser.add_argument("--log", action="store_true", help="log messages to file")
     parser.add_argument("--debug", action="store_true", help="enable debug messages")
     parser.add_argument(
-        "-t", "--tests", nargs="*", help="specify which tests cases will run"
+        "-t", "--tests", nargs="+", help="specify which tests cases will run"
     )
     return parser
 
