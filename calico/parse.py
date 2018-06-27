@@ -91,36 +91,53 @@ def parse_spec(content):
     runner = Calico()
 
     tests = [(n, t) for c in spec for n, t in c.items()]
-    attributes = [("command", {"names": ("r", "run"),
-                               "val_func": isinstance,
-                               "val_args": str,
-                               "err_message": "%s: Run command must be a string"
-                               }
-                   ),
-                  ("points", {"names": ("p", "points"),
-                              "val_func": isinstance,
-                              "val_args": (int, float),
-                              "err_message": "%s: Points value must be numeric"
-                              }
-                   ),
-                  ("blocker", {"names": ("b", "blocker"),
-                               "val_func": isinstance,
-                               "val_args": bool,
-                               "err_message": "%s: Blocker value must be true or false"
-                               }
-                   ),
-                  ("exits", {"names": ("x", "exit"),
-                             "val_func": isinstance,
-                             "val_args": int,
-                             "err_message": "%s: Exit status value must be an integer"
-                             }
-                   ),
-                  ("visible", {"names": ("v", "visible"),
-                               "val_func": isinstance,
-                               "val_args": bool,
-                               "err_message": "%s: Visibility value must be true or false"
-                               }
-                   )]
+    attributes = [
+        (
+            "command",
+            {
+                "names": ("r", "run"),
+                "val_func": isinstance,
+                "val_args": str,
+                "err_message": "%s: Run command must be a string",
+            },
+        ),
+        (
+            "points",
+            {
+                "names": ("p", "points"),
+                "val_func": isinstance,
+                "val_args": (int, float),
+                "err_message": "%s: Points value must be numeric",
+            },
+        ),
+        (
+            "blocker",
+            {
+                "names": ("b", "blocker"),
+                "val_func": isinstance,
+                "val_args": bool,
+                "err_message": "%s: Blocker value must be true or false",
+            },
+        ),
+        (
+            "exits",
+            {
+                "names": ("x", "exit"),
+                "val_func": isinstance,
+                "val_args": int,
+                "err_message": "%s: Exit status value must be an integer",
+            },
+        ),
+        (
+            "visible",
+            {
+                "names": ("v", "visible"),
+                "val_func": isinstance,
+                "val_args": bool,
+                "err_message": "%s: Visibility value must be true or false",
+            },
+        ),
+    ]
 
     for test_name, test in tests:
         if test_name[0] == "_":
