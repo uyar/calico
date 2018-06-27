@@ -44,6 +44,29 @@ def get_comment_value(node, *, name, field):
     return None
 
 
+def get_attribute(node, test_name, *, names, val_func, val_args, err_message):
+    """Get the value of an test attribute.
+
+    :sig: (SpecNode, str, Tuple[str], Callable[[Any, ...], bool], Any, str) -> Any
+    :param node: Node to get the attribute
+    :param test_name: Name of the test
+    :param names: Long and short names of the attribute
+    :param val_func: A validator function for the attribute
+    :param val_args: An argument to the validator function
+    :param err_message: An error message to shown when validation fails
+    """
+    _short, _long = names
+    attr = node.get(_long, node.get(_short))
+    if attr is not None:
+        if val_args is None:
+            result = val_func(attr)
+        else:
+            result = val_func(attr, val_args)
+
+        assert result, err_message % test_name
+    return attr
+
+
 def parse_spec(content):
     """Parse a test specification.
 
@@ -68,52 +91,74 @@ def parse_spec(content):
     runner = Calico()
 
     tests = [(n, t) for c in spec for n, t in c.items()]
+    attributes = [
+        (
+            "command",
+            {
+                "names": ("r", "run"),
+                "val_func": isinstance,
+                "val_args": str,
+                "err_message": "%s: Run command must be a string",
+            },
+        ),
+        (
+            "points",
+            {
+                "names": ("p", "points"),
+                "val_func": isinstance,
+                "val_args": (int, float),
+                "err_message": "%s: Points value must be numeric",
+            },
+        ),
+        (
+            "blocker",
+            {
+                "names": ("b", "blocker"),
+                "val_func": isinstance,
+                "val_args": bool,
+                "err_message": "%s: Blocker value must be true or false",
+            },
+        ),
+        (
+            "exits",
+            {
+                "names": ("x", "exit"),
+                "val_func": isinstance,
+                "val_args": int,
+                "err_message": "%s: Exit status value must be an integer",
+            },
+        ),
+        (
+            "visible",
+            {
+                "names": ("v", "visible"),
+                "val_func": isinstance,
+                "val_args": bool,
+                "err_message": "%s: Visibility value must be true or false",
+            },
+        ),
+    ]
+
     for test_name, test in tests:
         if test_name[0] == "_":
             for section, section_value in test.items():
                 runner[test_name + "_" + section] = section_value
             continue
 
-        run = test.get("run", test.get("r"))
-        assert run is not None, f"{test_name}: No run command"
-        assert isinstance(run, str), f"{test_name}: Run command must be a string"
-
         kwargs = {}
+        for kwarg, attr in attributes:
+            attr_ = get_attribute(test, test_name, **attr)
+            if attr_ is not None:
+                kwargs[kwarg] = attr_
 
-        exits = test.get("exit", test.get("x"))
-        if exits is not None:
-            assert isinstance(
-                exits, int
-            ), f"{test_name}: Exit status value must be an integer"
-            kwargs["exits"] = exits
+        assert "command" in kwargs, f"{test_name}: No run command"
 
         timeout = get_comment_value(test, name="run", field="timeout")
         if timeout is not None:
             assert timeout.isdigit(), f"{test_name}: Timeout value must be an integer"
             kwargs["timeout"] = int(timeout)
 
-        points = test.get("points", test.get("p"))
-        if points is not None:
-            assert isinstance(
-                points, (int, float)
-            ), f"{test_name}: Points value must be numeric"
-            kwargs["points"] = points
-
-        blocker = test.get("blocker", test.get("b"))
-        if blocker is not None:
-            assert isinstance(
-                blocker, bool
-            ), f"{test_name}: Blocker value must be true or false"
-            kwargs["blocker"] = blocker
-
-        visible = test.get("visible", test.get("v"))
-        if visible is not None:
-            assert isinstance(
-                visible, bool
-            ), f"{test_name}: Visibility value must be true or false"
-            kwargs["visible"] = visible
-
-        case = TestCase(test_name, command=run, **kwargs)
+        case = TestCase(test_name, **kwargs)
 
         script = test.get("script")
         if script is None:
