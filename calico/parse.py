@@ -47,7 +47,7 @@ def get_comment_value(node, *, name, field):
 def get_attribute(node, test_name, *, names, val_func, val_args, err_message):
     """Get the value of an test attribute.
 
-    :sig: (SpecNode, str, Tuple[str], Callable[[Any, ...], bool], Any, str)
+    :sig: (SpecNode, str, Tuple[str], Callable[[Any, ...], bool], Any, str) -> Any
     :param node: Node to get the attribute
     :param test_name: Name of the test
     :param names: Long and short names of the attribute
