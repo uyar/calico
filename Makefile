@@ -31,7 +31,7 @@ clean-docs:
 	make -C docs clean
 
 lint:
-	python setup.py flake8
+	flake8 calico
 
 test:
 	pytest
@@ -46,8 +46,13 @@ docs:
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 
-dist: clean
+setup.py: clean
+	poetry build
+	tar xzf dist/calico*.tar.gz --strip-components=1 --wildcards "calico-*/setup.py"
+	black setup.py
 	python setup.py check -r -s
+
+dist: clean
 	python setup.py sdist
 	python setup.py bdist_wheel
 
