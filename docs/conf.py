@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 #
-# Pace documentation build configuration file, created by
+# Calico documentation build configuration file, created by
 # sphinx-quickstart on Tue May  2 10:38:47 2017.
 #
 # This file is execfile()d with the current directory set to its
@@ -31,7 +31,7 @@
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
-extensions = ['sphinx.ext.autodoc', 'pygenstub']
+extensions = ["sphinx.ext.autodoc", "pygenstub"]
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ["_templates"]
@@ -75,7 +75,7 @@ exclude_patterns = ["_build", "Thumbs.db", ".DS_Store"]
 pygments_style = "sphinx"
 
 # A list of ignored prefixes for module index sorting.
-modindex_common_prefix = ['calico.']
+modindex_common_prefix = ["calico."]
 
 # If true, `todo` and `todoList` produce output, else they produce nothing.
 todo_include_todos = False
