@@ -1,6 +1,11 @@
 History
 =======
 
+1.1 (unreleased)
+----------------
+
+- Added option to run tests selectively.
+
 1.0 (2018-07-26)
 ----------------
 
