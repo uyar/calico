@@ -24,6 +24,7 @@ from enum import Enum
 import pexpect
 
 
+GLOBAL_TIMEOUT = 2  # in seconds
 MAX_LEN = 40
 SUPPORTS_JAIL = shutil.which("fakechroot") is not None
 
@@ -40,7 +41,7 @@ class ActionType(Enum):
 class Action:
     """An action in a test script."""
 
-    def __init__(self, type_, data, *, timeout=None):
+    def __init__(self, type_, data, *, timeout=-1):
         """Initialize this action.
 
         :sig: (ActionType, str, Optional[int]) -> None
@@ -64,18 +65,20 @@ class Action:
         yield self.timeout
 
 
-def run_script(command, script, *, defs=None):
+def run_script(command, script, *, defs=None, g_timeout=None):
     """Run a command and check whether it follows a script.
 
-    :sig: (str, List[Action], Optional[Mapping]) -> Tuple[int, List[str]]
+    :sig: (str, List[Action], Optional[Mapping], Optional[int]) -> Tuple[int, List[str]]
     :param command: Command to run.
     :param script: Script to check against.
     :param defs: Variable substitutions.
+    :param g_timeout: Global timeout value for the spawn class
     :return: Exit status and errors.
     """
     defs = defs if defs is not None else {}
+    g_timeout = g_timeout if g_timeout is not None else GLOBAL_TIMEOUT
 
-    process = pexpect.spawn(command)
+    process = pexpect.spawn(command, timeout=g_timeout)
     process.setecho(False)
     errors = []
 
@@ -91,8 +94,8 @@ def run_script(command, script, *, defs=None):
                 expecting = (
                     "_EOF_" if action.data is pexpect.EOF else f'"{action.data}"'
                 )
-                timeout = f" ({action.timeout}s)" if action.timeout is not None else ""
-                _logger.debug("  expecting%s: %s", timeout, expecting)
+                timeout = action.timeout if action.timeout != -1 else g_timeout
+                _logger.debug("  expecting (%ds): %s", timeout, expecting)
                 process.expect(action.data, timeout=action.timeout)
                 output = process.after
                 received = "_EOF_" if ".EOF" in repr(output) else f'"{output.decode()}"'
@@ -129,7 +132,7 @@ class TestCase:
         name,
         *,
         command,
-        timeout=None,
+        timeout=-1,
         exits=0,
         points=None,
         blocker=False,
@@ -187,12 +190,13 @@ class TestCase:
         """
         self.script.append(action)
 
-    def run(self, *, defs=None, jailed=False):
+    def run(self, *, defs=None, jailed=False, g_timeout=None):
         """Run this test and produce a report.
 
-        :sig: (Optional[Mapping], Optional[bool]) -> Mapping[str, Union[str, List[str]]]
+        :sig: (Optional[Mapping], Optional[bool], Optional[int]) -> Mapping[str, Union[str, List[str]]]
         :param defs: Variable substitutions.
         :param jailed: Whether to jail the command to the current directory.
+        :param g_timeout: Global timeout for all expects in the test
         :return: Result report of the test.
         """
         report = {"errors": []}
@@ -201,7 +205,9 @@ class TestCase:
         command = f"{jail_prefix}{self.command}"
         _logger.debug("running command: %s", command)
 
-        exit_status, errors = run_script(self.command, self.script, defs=defs)
+        exit_status, errors = run_script(
+            self.command, self.script, defs=defs, g_timeout=g_timeout
+        )
         report["errors"].extend(errors)
 
         _logger.debug("exit status: %d (expected %d)", exit_status, self.exits)
@@ -233,12 +239,13 @@ class Calico(OrderedDict):
         super().__setitem__(case.name, case)
         self.points += case.points if case.points is not None else 0
 
-    def run(self, *, tests=None, quiet=False):
+    def run(self, *, tests=None, quiet=False, g_timeout=None):
         """Run this test suite.
 
-        :sig: (Optional[bool], Optional[List[str]]) -> Mapping[str, Any]
+        :sig: (Optional[bool], Optional[List[str]], Optional[int]) -> Mapping[str, Any]
         :param tests: Tests to include in the run.
         :param quiet: Whether to suppress progress messages.
+        :param g_timeout: Global timeout value for the all tests
         :return: A report containing the results.
         """
         report = OrderedDict()
@@ -258,7 +265,9 @@ class Calico(OrderedDict):
                 print(f"{test_name} {dots}", end=" ")
 
             jailed = SUPPORTS_JAIL and test_name.startswith("case_")
-            report[test_name] = test.run(defs=self.get("_define_vars"), jailed=jailed)
+            report[test_name] = test.run(
+                defs=self.get("_define_vars"), jailed=jailed, g_timeout=g_timeout
+            )
             passed = len(report[test_name]["errors"]) == 0
 
             if test.points is None:

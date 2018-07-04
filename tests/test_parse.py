@@ -275,7 +275,7 @@ def test_case_with_no_script_should_expect_eof():
           run: echo 1
     """
     runner = parse_spec(source)
-    assert [tuple(s) for s in runner["c1"].script] == [("e", "_EOF_", None)]
+    assert [tuple(s) for s in runner["c1"].script] == [("e", "_EOF_", -1)]
 
 
 def test_case_run_with_timeout_should_generate_expect_eof_with_timeout():
@@ -317,7 +317,7 @@ def test_case_script_with_string_action_data_should_be_ok():
             - expect: "1"
     """
     runner = parse_spec(source)
-    assert [tuple(s) for s in runner["c1"].script] == [("e", "1", None)]
+    assert [tuple(s) for s in runner["c1"].script] == [("e", "1", -1)]
 
 
 def test_case_script_with_numeric_action_data_should_raise_error():
@@ -340,7 +340,7 @@ def test_case_script_with_action_data_eof_should_be_ok():
             - expect: _EOF_
     """
     runner = parse_spec(source)
-    assert [tuple(s) for s in runner["c1"].script] == [("e", "_EOF_", None)]
+    assert [tuple(s) for s in runner["c1"].script] == [("e", "_EOF_", -1)]
 
 
 def test_case_script_with_multiple_action_data_should_raise_error():
@@ -365,7 +365,7 @@ def test_case_script_with_expect_shortcut_should_be_ok():
             - e: "1"
     """
     runner = parse_spec(source)
-    assert [tuple(s) for s in runner["c1"].script] == [("e", "1", None)]
+    assert [tuple(s) for s in runner["c1"].script] == [("e", "1", -1)]
 
 
 def test_case_script_with_send_shortcut_should_be_ok():
@@ -376,7 +376,7 @@ def test_case_script_with_send_shortcut_should_be_ok():
             - s: "1"
     """
     runner = parse_spec(source)
-    assert [tuple(s) for s in runner["c1"].script] == [("s", "1", None)]
+    assert [tuple(s) for s in runner["c1"].script] == [("s", "1", -1)]
 
 
 def test_case_script_order_should_be_preserved():
@@ -390,9 +390,9 @@ def test_case_script_order_should_be_preserved():
     """
     runner = parse_spec(source)
     assert [tuple(s) for s in runner["c1"].script] == [
-        ("e", "foo", None),
-        ("s", "1", None),
-        ("e", "_EOF_", None),
+        ("e", "foo", -1),
+        ("s", "1", -1),
+        ("e", "_EOF_", -1),
     ]
 
 

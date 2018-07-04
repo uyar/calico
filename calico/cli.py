@@ -53,6 +53,9 @@ def make_parser(prog):
     parser.add_argument(
         "-t", "--tests", nargs="+", help="specify which tests cases will run"
     )
+    parser.add_argument(
+        "--timeout", type=int, help="default timeout value for all test cases (seconds)"
+    )
     return parser
 
 
@@ -89,7 +92,6 @@ def main(argv=None):
     argv = argv if argv is not None else sys.argv
     parser = make_parser(prog="calico")
     arguments = parser.parse_args(argv[1:])
-
     try:
         spec_filename = os.path.abspath(arguments.spec)
         with open(spec_filename) as f:
@@ -103,7 +105,11 @@ def main(argv=None):
         runner = parse_spec(content)
 
         if not arguments.validate:
-            report = runner.run(tests=arguments.tests, quiet=arguments.quiet)
+            report = runner.run(
+                tests=arguments.tests,
+                quiet=arguments.quiet,
+                g_timeout=arguments.timeout,
+            )
             score = report["points"]
             print(f"Grade: {score} / {runner.points}")
     except Exception as e:
