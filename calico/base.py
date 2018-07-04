@@ -94,8 +94,8 @@ def run_script(command, script, *, defs=None, g_timeout=None):
                 expecting = (
                     "_EOF_" if action.data is pexpect.EOF else f'"{action.data}"'
                 )
-                timeout = f" ({action.timeout}s)" if action.timeout != -1 else ""
-                _logger.debug("  expecting%s: %s", timeout, expecting)
+                timeout = action.timeout if action.timeout != -1 else g_timeout
+                _logger.debug("  expecting (%ds): %s", timeout, expecting)
                 process.expect(action.data, timeout=action.timeout)
                 output = process.after
                 received = "_EOF_" if ".EOF" in repr(output) else f'"{output.decode()}"'
