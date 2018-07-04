@@ -41,7 +41,7 @@ class ActionType(Enum):
 class Action:
     """An action in a test script."""
 
-    def __init__(self, type_, data, *, timeout=None):
+    def __init__(self, type_, data, *, timeout=-1):
         """Initialize this action.
 
         :sig: (ActionType, str, Optional[int]) -> None
@@ -77,7 +77,7 @@ def run_script(command, script, *, defs=None, g_timeout=None):
     """
     defs = defs if defs is not None else {}
     g_timeout = g_timeout if g_timeout is not None else GLOBAL_TIMEOUT
-	
+
     process = pexpect.spawn(command, timeout=g_timeout)
     process.setecho(False)
     errors = []
@@ -94,7 +94,7 @@ def run_script(command, script, *, defs=None, g_timeout=None):
                 expecting = (
                     "_EOF_" if action.data is pexpect.EOF else f'"{action.data}"'
                 )
-                timeout = f" ({action.timeout}s)" if action.timeout is not None else ""
+                timeout = f" ({action.timeout}s)" if action.timeout != -1 else ""
                 _logger.debug("  expecting%s: %s", timeout, expecting)
                 process.expect(action.data, timeout=action.timeout)
                 output = process.after
@@ -132,7 +132,7 @@ class TestCase:
         name,
         *,
         command,
-        timeout=None,
+        timeout=-1,
         exits=0,
         points=None,
         blocker=False,
