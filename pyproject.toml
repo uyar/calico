@@ -48,6 +48,35 @@ calico = "calico.cli:main"
 [tool.black]
 line-length = 96
 
+[tool.tox]
+legacy_tox_ini = """
+[tox]
+envlist = py{37,36}, style, docs
+skipsdist = True
+
+[testenv]
+whitelist_externals = poetry
+skip_install = true
+commands =
+    poetry install -v
+    poetry run {posargs:pytest}
+
+[testenv:style]
+whitelist_externals = poetry
+skip_install = true
+commands =
+    poetry install -v
+    poetry run {posargs:flake8} calico
+
+[testenv:docs]
+whitelist_externals = poetry
+skip_install = true
+changedir = docs/
+commands =
+    poetry install -v
+    poetry run sphinx-build -b html ./ _build/
+"""
+
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
