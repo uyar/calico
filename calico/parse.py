@@ -169,17 +169,13 @@ def parse_spec(content):
             for step in script:
                 action_type, data = [(k, v) for k, v in step.items()][0]
                 assert action_type in action_types, f"{test_name}: Unknown action type"
-                assert isinstance(
-                    data, str
-                ), f"{test_name}: Action data must be a string"
+                assert isinstance(data, str), f"{test_name}: Action data must be a string"
 
                 kwargs = {}
 
                 timeout = get_comment_value(step, name=action_type, field="timeout")
                 if timeout is not None:
-                    assert (
-                        timeout.isdigit()
-                    ), f"{test_name}: Timeout value must be an integer"
+                    assert timeout.isdigit(), f"{test_name}: Timeout value must be an integer"
                     kwargs["timeout"] = int(timeout)
 
                 action = Action(action_types[action_type], data, **kwargs)

@@ -91,9 +91,7 @@ def run_script(command, script, *, defs=None, g_timeout=None):
             action.data = action.data % defs
         if action.type_ == ActionType.EXPECT:
             try:
-                expecting = (
-                    "_EOF_" if action.data is pexpect.EOF else f'"{action.data}"'
-                )
+                expecting = "_EOF_" if action.data is pexpect.EOF else f'"{action.data}"'
                 timeout = action.timeout if action.timeout != -1 else g_timeout
                 _logger.debug("  expecting (%ds): %s", timeout, expecting)
                 process.expect(action.data, timeout=action.timeout)
@@ -128,15 +126,7 @@ class TestCase:
     """A case in a test suite."""
 
     def __init__(
-        self,
-        name,
-        *,
-        command,
-        timeout=-1,
-        exits=0,
-        points=None,
-        blocker=False,
-        visible=True,
+        self, name, *, command, timeout=-1, exits=0, points=None, blocker=False, visible=True
     ):
         """Initialize this test case.
 
@@ -253,9 +243,7 @@ class Calico(OrderedDict):
 
         os.environ["TERM"] = "dumb"  # disable color output in terminal
 
-        test_names = (
-            tests if tests is not None else [n for n in self.keys() if n[0] != "_"]
-        )
+        test_names = tests if tests is not None else [n for n in self.keys() if n[0] != "_"]
         for test_name in test_names:
             test = self.get(test_name)
 
