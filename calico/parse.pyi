@@ -7,17 +7,14 @@ from .base import Calico
 
 SpecNode = comments.CommentedMap
 
-
 def get_comment_value(node: SpecNode, *, name: str, field: str) -> str: ...
-
 def get_attribute(
-        node: SpecNode,
-        test_name: str,
-        *,
-        names: Tuple[str],
-        val_func: Callable[[Any, ...], bool],
-        val_args: Any,
-        err_message: str
+    node: SpecNode,
+    test_name: str,
+    *,
+    names: Tuple[str],
+    val_func: Callable[[Any, ...], bool],
+    val_args: Any,
+    err_message: str,
 ) -> Any: ...
-
 def parse_spec(content: str) -> Calico: ...
