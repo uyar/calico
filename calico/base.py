@@ -183,7 +183,12 @@ class TestCase:
     def run(self, *, defs=None, jailed=False, g_timeout=None):
         """Run this test and produce a report.
 
-        :sig: (Optional[Mapping], Optional[bool], Optional[int]) -> Mapping[str, Union[str, List[str]]]
+        :sig:
+            (
+                Optional[Mapping],
+                Optional[bool],
+                Optional[int]
+            ) -> Mapping[str, Union[str, List[str]]]
         :param defs: Variable substitutions.
         :param jailed: Whether to jail the command to the current directory.
         :param g_timeout: Global timeout for all expects in the test
