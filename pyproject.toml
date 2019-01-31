@@ -25,7 +25,7 @@ classifiers = [
     "Topic :: Utilities",
 ]
 
-include = ["AUTHORS.rst", "HISTORY.rst", "Vagrantfile", "tests/**/*.py", "tests/**/*.c", "tests/**/*.yaml", "docs/**/*", "docs/Makefile"]
+include = ["AUTHORS.rst", "HISTORY.rst", "Vagrantfile", "tests/**/*.py", "tests/**/*.c", "tests/**/*.yaml", "docs/source/**/*", "docs/Makefile"]
 
 [tool.poetry.dependencies]
 python = "^3.6"
@@ -74,7 +74,7 @@ skip_install = true
 changedir = docs/
 commands =
     poetry install -v
-    poetry run sphinx-build -b html ./ _build/
+    poetry run sphinx-build -b html source/ build/
 """
 
 [build-system]

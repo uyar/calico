@@ -8,7 +8,6 @@
 .tox/
 .vagrant/
 
-_build/
 build/
 dist/
 
