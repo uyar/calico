@@ -15,4 +15,4 @@
 
 """General settings."""
 
-__version__ = "1.0"  # sig: str
+__version__ = "1.1.0.dev0"  # sig: str

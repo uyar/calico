@@ -1,8 +1,8 @@
 History
 =======
 
-1.1 (unreleased)
-----------------
+1.1.0 (unreleased)
+------------------
 
 - Added option to run tests selectively.
 
