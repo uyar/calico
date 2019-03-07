@@ -1,9 +1,10 @@
 History
 =======
 
-1.1.1 (unreleased)
+1.1.1 (2019-03-07)
 ------------------
 
+- Add enum34 dependency for Python 2.7.
 - Minor bug fixes.
 
 1.1.0 (2019-03-07)

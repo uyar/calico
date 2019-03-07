@@ -20,7 +20,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 from distutils.spawn import find_executable
 
 
-__version__ = "1.1.1.dev0"  # sig: str
+__version__ = "1.1.1"  # sig: str
 
 GLOBAL_TIMEOUT = 2  # sig: int
 """Default timeout for tests, in seconds."""
