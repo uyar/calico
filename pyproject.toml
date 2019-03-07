@@ -23,6 +23,7 @@ classifiers = [
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.5",
     "Programming Language :: Python :: 3.4",
+    "Programming Language :: Python :: 2.7",
     "Topic :: Education :: Testing",
     "Topic :: Utilities",
 ]
@@ -30,7 +31,7 @@ classifiers = [
 include = ["AUTHORS.rst", "HISTORY.rst", "Vagrantfile", "tests/**/*.py", "tests/**/*.c", "tests/**/*.yaml", "docs/source/**/*", "docs/Makefile"]
 
 [tool.poetry.dependencies]
-python = "^3.4"
+python = "^3.4|^2.7"
 pexpect = "^4.6"
 "ruamel.yaml" = "^0.15.41"
 
@@ -53,7 +54,7 @@ line-length = 96
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py{37,36,35,34}, style, docs
+envlist = py{37,36,35,34,27}, style, docs
 skipsdist = True
 
 [testenv]

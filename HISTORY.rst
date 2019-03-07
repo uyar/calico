@@ -5,6 +5,7 @@ History
 ------------------
 
 - Added option to run tests selectively.
+- Add support for Python 2.7, 3.4, and 3.5.
 
 1.0 (2018-07-26)
 ----------------
