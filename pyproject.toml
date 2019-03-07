@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "calico"
-version = "1.1.1"
+version = "1.1.2"
 description = "I/O checker for command line programs."
 readme = "README.rst"
 
@@ -34,7 +34,7 @@ include = ["AUTHORS.rst", "HISTORY.rst", "Vagrantfile", "tests/**/*.py", "tests/
 python = "^3.4|^2.7"
 pexpect = "^4.6"
 "ruamel.yaml" = "^0.15.41"
-enum34 = "^1.1"
+enum34 = {version = "^1.1", python = "^2.7"}
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.5"

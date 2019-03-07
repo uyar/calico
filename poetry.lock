@@ -121,6 +121,7 @@ version = ">=3.5"
 [[package]]
 category = "main"
 description = "Python 3.4 Enum backported to 3.3, 3.2, 3.1, 2.7, 2.6, 2.5, and 2.4"
+marker = "python_version >= \"2.7\" and python_version < \"3.0\" or python_version < \"3.4\""
 name = "enum34"
 optional = false
 python-versions = "*"
@@ -626,7 +627,7 @@ secure = ["pyOpenSSL (>=0.14)", "cryptography (>=1.3.4)", "idna (>=2.0.0)", "cer
 socks = ["PySocks (>=1.5.6,<1.5.7 || >1.5.7,<2.0)"]
 
 [metadata]
-content-hash = "4c6ac496db4f763bb62b414b209893e52593b39bf5502c279431be5d44c3f3b9"
+content-hash = "fd2f42676ff9847e2ed19a7ba1e9afee01f762c8078a3d39ee179fd069701a99"
 python-versions = "^3.4|^2.7"
 
 [metadata.hashes]
