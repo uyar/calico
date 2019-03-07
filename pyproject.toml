@@ -34,6 +34,7 @@ include = ["AUTHORS.rst", "HISTORY.rst", "Vagrantfile", "tests/**/*.py", "tests/
 python = "^3.4|^2.7"
 pexpect = "^4.6"
 "ruamel.yaml" = "^0.15.41"
+enum34 = "^1.1"
 
 [tool.poetry.dev-dependencies]
 pytest = "^3.5"
