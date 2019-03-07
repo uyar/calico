@@ -15,4 +15,12 @@
 
 """General settings."""
 
+import shutil
+
 __version__ = "1.1.0.dev0"  # sig: str
+
+GLOBAL_TIMEOUT = 2  # sig: int
+"""Default timeout for tests, in seconds."""
+
+SUPPORTS_JAIL = shutil.which("fakechroot") is not None  # sig: bool
+"""Whether this systems supports jailing commands."""

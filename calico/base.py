@@ -1,4 +1,4 @@
-# Copyright (C) 2016-2018 H. Turgut Uyar <uyar@itu.edu.tr>
+# Copyright (C) 2016-2019 H. Turgut Uyar <uyar@itu.edu.tr>
 #
 # Calico is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -13,20 +13,19 @@
 # You should have received a copy of the GNU General Public License
 # along with Calico.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The module that contains the base classes for Calico."""
+"""Base classes for Calico."""
 
 import logging
 import os
-import shutil
 from collections import OrderedDict
 from enum import Enum
 
 import pexpect
 
+from . import GLOBAL_TIMEOUT, SUPPORTS_JAIL
 
-GLOBAL_TIMEOUT = 2  # in seconds
+
 MAX_LEN = 40
-SUPPORTS_JAIL = shutil.which("fakechroot") is not None
 
 _logger = logging.getLogger("calico")
 
@@ -34,8 +33,8 @@ _logger = logging.getLogger("calico")
 class ActionType(Enum):
     """Type of an action."""
 
-    EXPECT = ("e", "expect")
-    SEND = ("s", "send")
+    EXPECT = ("e", "expect")  # sig: Tuple[str, str]
+    SEND = ("s", "send")  # sig: Tuple[str, str]
 
 
 class Action:

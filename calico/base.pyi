@@ -5,7 +5,9 @@ from typing import Any, List, Mapping, Optional, Tuple, Union
 from collections import OrderedDict
 from enum import Enum
 
-class ActionType(Enum): ...
+class ActionType(Enum):
+    EXPECT = ...  # type: Tuple[str, str]
+    SEND = ...  # type: Tuple[str, str]
 
 class Action:
     type_ = ...  # type: ActionType
