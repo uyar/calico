@@ -13,15 +13,17 @@
 # You should have received a copy of the GNU General Public License
 # along with Calico.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The module that contains the command line interface to Calico."""
+"""Command line interface."""
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import logging
 import os
 import sys
 from argparse import ArgumentParser
 
-from . import __version__
-from .parse import parse_spec
+from calico import __version__
+from calico.parse import parse_spec
 
 
 _logger = logging.getLogger("calico")
@@ -54,7 +56,7 @@ def make_parser(prog):
     return parser
 
 
-def setup_logging(*, debug, log):
+def setup_logging(debug, log):
     """Set up logging levels and handlers.
 
     :sig: (bool, bool) -> None

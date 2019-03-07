@@ -15,12 +15,18 @@
 
 """General settings."""
 
-import shutil
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+import sys
+
+from distutils.spawn import find_executable
 
 __version__ = "1.1.0.dev0"  # sig: str
+
+PY2 = sys.version_info < (3, 0)  # sig: str
 
 GLOBAL_TIMEOUT = 2  # sig: int
 """Default timeout for tests, in seconds."""
 
-SUPPORTS_JAIL = shutil.which("fakechroot") is not None  # sig: bool
-"""Whether this systems supports jailing commands."""
+SUPPORTS_JAIL = find_executable("fakechroot") is not None  # sig: bool
+"""Whether this system supports changing root directory for a process."""

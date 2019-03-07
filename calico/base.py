@@ -15,6 +15,8 @@
 
 """Base classes for Calico."""
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import logging
 import os
 from collections import OrderedDict
@@ -22,7 +24,7 @@ from enum import Enum
 
 import pexpect
 
-from . import GLOBAL_TIMEOUT, SUPPORTS_JAIL
+from . import GLOBAL_TIMEOUT, PY2, SUPPORTS_JAIL
 
 
 MAX_LEN = 40
@@ -40,7 +42,7 @@ class ActionType(Enum):
 class Action:
     """An action in a test script."""
 
-    def __init__(self, type_, data, *, timeout=-1):
+    def __init__(self, type_, data, timeout=-1):
         """Initialize this action.
 
         :sig: (ActionType, str, Optional[int]) -> None
@@ -64,7 +66,7 @@ class Action:
         yield self.timeout
 
 
-def run_script(command, script, *, defs=None, g_timeout=None):
+def run_script(command, script, defs=None, g_timeout=None):
     """Run a command and check whether it follows a script.
 
     :sig: (str, List[Action], Optional[Mapping], Optional[int]) -> Tuple[int, List[str]]
@@ -90,16 +92,22 @@ def run_script(command, script, *, defs=None, g_timeout=None):
             action.data = action.data % defs
         if action.type_ == ActionType.EXPECT:
             try:
-                expecting = "_EOF_" if action.data is pexpect.EOF else ('"%(a)s"' % {"a": action.data})
+                expecting = (
+                    "_EOF_" if action.data is pexpect.EOF else ('"%(a)s"' % {"a": action.data})
+                )
                 timeout = action.timeout if action.timeout != -1 else g_timeout
                 _logger.debug("  expecting (%ds): %s", timeout, expecting)
                 process.expect(action.data, timeout=action.timeout)
                 output = process.after
-                received = "_EOF_" if ".EOF" in repr(output) else ('"%(o)s"' % {"o": output.decode()})
+                received = (
+                    "_EOF_" if ".EOF" in repr(output) else ('"%(o)s"' % {"o": output.decode()})
+                )
                 _logger.debug("  received: %s", received)
             except pexpect.EOF:
                 output = process.before
-                received = "_EOF_" if ".EOF" in repr(output) else ('"%(o)s"' % {"o": output.decode()})
+                received = (
+                    "_EOF_" if ".EOF" in repr(output) else ('"%(o)s"' % {"o": output.decode()})
+                )
                 _logger.debug('  received: "%s"', received)
                 process.close(force=True)
                 _logger.debug("FAILED: Expected output not received.")
@@ -107,7 +115,9 @@ def run_script(command, script, *, defs=None, g_timeout=None):
                 break
             except pexpect.TIMEOUT:
                 output = process.before
-                received = "_EOF_" if ".EOF" in repr(output) else ('"%(o)s"' % {"o": output.decode()})
+                received = (
+                    "_EOF_" if ".EOF" in repr(output) else ('"%(o)s"' % {"o": output.decode()})
+                )
                 _logger.debug('  received: "%s"', received)
                 process.close(force=True)
                 _logger.debug("FAILED: Timeout exceeded.")
@@ -125,7 +135,7 @@ class TestCase:
     """A case in a test suite."""
 
     def __init__(
-        self, name, *, command, timeout=-1, exits=0, points=None, blocker=False, visible=True
+        self, name, command, timeout=-1, exits=0, points=None, blocker=False, visible=True
     ):
         """Initialize this test case.
 
@@ -179,7 +189,7 @@ class TestCase:
         """
         self.script.append(action)
 
-    def run(self, *, defs=None, jailed=False, g_timeout=None):
+    def run(self, defs=None, jailed=False, g_timeout=None):
         """Run this test and produce a report.
 
         :sig:
@@ -195,8 +205,8 @@ class TestCase:
         """
         report = {"errors": []}
 
-        jail_prefix = ("fakechroot chroot %(d)s " % {'d': os.getcwd()}) if jailed else ""
-        command = "%(j)s%(c)s" % {'j':jail_prefix, 'c':self.command}
+        jail_prefix = ("fakechroot chroot %(d)s " % {"d": os.getcwd()}) if jailed else ""
+        command = "%(j)s%(c)s" % {"j": jail_prefix, "c": self.command}
         _logger.debug("running command: %s", command)
 
         exit_status, errors = run_script(
@@ -219,7 +229,10 @@ class Calico(OrderedDict):
 
         :sig: () -> None
         """
-        super().__init__()
+        if PY2:
+            OrderedDict.__init__(self)
+        else:
+            super().__init__()
 
         self.points = 0  # sig: Union[int, float]
         """Total points in this test suite."""
@@ -230,10 +243,13 @@ class Calico(OrderedDict):
         :sig: (TestCase) -> None
         :param case: Test case to add.
         """
-        super().__setitem__(case.name, case)
+        if PY2:
+            OrderedDict.__setitem__(self, case.name, case)
+        else:
+            super().__setitem__(case.name, case)
         self.points += case.points if case.points is not None else 0
 
-    def run(self, *, tests=None, quiet=False, g_timeout=None):
+    def run(self, tests=None, quiet=False, g_timeout=None):
         """Run this test suite.
 
         :sig: (Optional[bool], Optional[List[str]], Optional[int]) -> Mapping[str, Any]
@@ -254,7 +270,7 @@ class Calico(OrderedDict):
             _logger.debug("starting test %s", test_name)
             if (not quiet) and test.visible:
                 dots = "." * (MAX_LEN - len(test_name) + 1)
-                print("%(t)s %(d)s{" % {'t': test_name, 'd': dots}, end=" ")
+                print("%(t)s %(d)s{" % {"t": test_name, "d": dots}, end=" ")
 
             jailed = SUPPORTS_JAIL and test_name.startswith("case_")
             report[test_name] = test.run(

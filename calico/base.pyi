@@ -14,13 +14,12 @@ class Action:
     data = ...  # type: str
     timeout = ...  # type: Optional[int]
     def __init__(
-        self, type_: ActionType, data: str, *, timeout: Optional[int] = ...
+        self, type_: ActionType, data: str, timeout: Optional[int] = ...
     ) -> None: ...
 
 def run_script(
     command: str,
     script: List[Action],
-    *,
     defs: Optional[Mapping] = ...,
     g_timeout: Optional[int] = ...,
 ) -> Tuple[int, List[str]]: ...
@@ -37,7 +36,6 @@ class TestCase:
     def __init__(
         self,
         name: str,
-        *,
         command: str,
         timeout: Optional[int] = ...,
         exits: Optional[int] = ...,
@@ -48,7 +46,6 @@ class TestCase:
     def add_action(self, action: Action) -> None: ...
     def run(
         self,
-        *,
         defs: Optional[Mapping] = ...,
         jailed: Optional[bool] = ...,
         g_timeout: Optional[int] = ...,
@@ -60,7 +57,6 @@ class Calico(OrderedDict):
     def add_case(self, case: TestCase) -> None: ...
     def run(
         self,
-        *,
         tests: Optional[bool] = ...,
         quiet: Optional[List[str]] = ...,
         g_timeout: Optional[int] = ...,

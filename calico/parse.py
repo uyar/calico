@@ -13,7 +13,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Calico.  If not, see <http://www.gnu.org/licenses/>.
 
-"""The module that contains specification parsing components."""
+"""Specification parsing."""
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 from ruamel import yaml
 from ruamel.yaml import comments
@@ -24,7 +26,7 @@ from .base import Action, ActionType, Calico, TestCase
 # sigalias: SpecNode = comments.CommentedMap
 
 
-def get_comment_value(node, *, name, field):
+def get_comment_value(node, name, field):
     """Get the value of a comment field.
 
     :sig: (SpecNode, str, str) -> str
@@ -44,7 +46,7 @@ def get_comment_value(node, *, name, field):
     return None
 
 
-def get_attribute(node, test_name, *, names, val_func, val_args, err_message):
+def get_attribute(node, test_name, names, val_func, val_args, err_message):
     """Get the value of an test attribute.
 
     :sig: (SpecNode, str, Tuple[str], Callable[[Any, ...], bool], Any, str) -> Any
@@ -151,11 +153,13 @@ def parse_spec(content):
             if attr_ is not None:
                 kwargs[kwarg] = attr_
 
-        assert "command" in kwargs, "%(t)s: No run command" % {'t': test_name}
+        assert "command" in kwargs, "%(t)s: No run command" % {"t": test_name}
 
         timeout = get_comment_value(test, name="run", field="timeout")
         if timeout is not None:
-            assert timeout.isdigit(), "%(t)s: Timeout value must be an integer" % {'t': test_name}
+            assert timeout.isdigit(), "%(t)s: Timeout value must be an integer" % {
+                "t": test_name
+            }
             kwargs["timeout"] = int(timeout)
 
         case = TestCase(test_name, **kwargs)
@@ -168,14 +172,20 @@ def parse_spec(content):
         else:
             for step in script:
                 action_type, data = [(k, v) for k, v in step.items()][0]
-                assert action_type in action_types, "%(t)s: Unknown action type" % {'t': test_name}
-                assert isinstance(data, str), "%(t)s: Action data must be a string" % {'t': test_name}
+                assert action_type in action_types, "%(t)s: Unknown action type" % {
+                    "t": test_name
+                }
+                assert isinstance(data, str), "%(t)s: Action data must be a string" % {
+                    "t": test_name
+                }
 
                 kwargs = {}
 
                 timeout = get_comment_value(step, name=action_type, field="timeout")
                 if timeout is not None:
-                    assert timeout.isdigit(), "%(t)s: Timeout value must be an integer" % {'t': test_name}
+                    assert timeout.isdigit(), "%(t)s: Timeout value must be an integer" % {
+                        "t": test_name
+                    }
                     kwargs["timeout"] = int(timeout)
 
                 action = Action(action_types[action_type], data, **kwargs)
