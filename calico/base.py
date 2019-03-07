@@ -19,13 +19,16 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import logging
 import os
+import sys
 from collections import OrderedDict
 from enum import Enum
 
 import pexpect
 
-from . import GLOBAL_TIMEOUT, PY2, SUPPORTS_JAIL
+from . import GLOBAL_TIMEOUT, SUPPORTS_JAIL
 
+
+PY2 = sys.version_info < (3,)  # sig: str
 
 MAX_LEN = 40
 

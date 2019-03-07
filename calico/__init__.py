@@ -17,13 +17,10 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import sys
-
 from distutils.spawn import find_executable
 
-__version__ = "1.1.0.dev0"  # sig: str
 
-PY2 = sys.version_info < (3, 0)  # sig: str
+__version__ = "1.1.0.dev0"  # sig: str
 
 GLOBAL_TIMEOUT = 2  # sig: int
 """Default timeout for tests, in seconds."""
