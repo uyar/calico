@@ -9,7 +9,7 @@ assignments in an introductory programming course.
 :Repository: https://github.com/itublg/calico
 :Documentation: https://calico.readthedocs.io/
 
-Calico has been tested with Python 3.5+. You can install the latest version
+Calico has been tested with Python 3.4+. You can install the latest version
 from PyPI::
 
    pip install calico
