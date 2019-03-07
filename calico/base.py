@@ -90,16 +90,16 @@ def run_script(command, script, *, defs=None, g_timeout=None):
             action.data = action.data % defs
         if action.type_ == ActionType.EXPECT:
             try:
-                expecting = "_EOF_" if action.data is pexpect.EOF else f'"{action.data}"'
+                expecting = "_EOF_" if action.data is pexpect.EOF else ('"%(a)s"' % {"a": action.data})
                 timeout = action.timeout if action.timeout != -1 else g_timeout
                 _logger.debug("  expecting (%ds): %s", timeout, expecting)
                 process.expect(action.data, timeout=action.timeout)
                 output = process.after
-                received = "_EOF_" if ".EOF" in repr(output) else f'"{output.decode()}"'
+                received = "_EOF_" if ".EOF" in repr(output) else ('"%(o)s"' % {"o": output.decode()})
                 _logger.debug("  received: %s", received)
             except pexpect.EOF:
                 output = process.before
-                received = "_EOF_" if ".EOF" in repr(output) else f'"{output.decode()}"'
+                received = "_EOF_" if ".EOF" in repr(output) else ('"%(o)s"' % {"o": output.decode()})
                 _logger.debug('  received: "%s"', received)
                 process.close(force=True)
                 _logger.debug("FAILED: Expected output not received.")
@@ -107,7 +107,7 @@ def run_script(command, script, *, defs=None, g_timeout=None):
                 break
             except pexpect.TIMEOUT:
                 output = process.before
-                received = "_EOF_" if ".EOF" in repr(output) else f'"{output.decode()}"'
+                received = "_EOF_" if ".EOF" in repr(output) else ('"%(o)s"' % {"o": output.decode()})
                 _logger.debug('  received: "%s"', received)
                 process.close(force=True)
                 _logger.debug("FAILED: Timeout exceeded.")
@@ -195,8 +195,8 @@ class TestCase:
         """
         report = {"errors": []}
 
-        jail_prefix = f"fakechroot chroot {os.getcwd()} " if jailed else ""
-        command = f"{jail_prefix}{self.command}"
+        jail_prefix = ("fakechroot chroot %(d)s " % {'d': os.getcwd()}) if jailed else ""
+        command = "%(j)s%(c)s" % {'j':jail_prefix, 'c':self.command}
         _logger.debug("running command: %s", command)
 
         exit_status, errors = run_script(
@@ -254,7 +254,7 @@ class Calico(OrderedDict):
             _logger.debug("starting test %s", test_name)
             if (not quiet) and test.visible:
                 dots = "." * (MAX_LEN - len(test_name) + 1)
-                print(f"{test_name} {dots}", end=" ")
+                print("%(t)s %(d)s{" % {'t': test_name, 'd': dots}, end=" ")
 
             jailed = SUPPORTS_JAIL and test_name.startswith("case_")
             report[test_name] = test.run(
@@ -270,7 +270,7 @@ class Calico(OrderedDict):
                 earned_points += report[test_name]["points"]
                 if (not quiet) and test.visible:
                     scored = report[test_name]["points"]
-                    print(f"{scored} / {test.points}")
+                    print("%(s)s / %(p)s" % {"s": scored, "p": test.points})
 
             if test.blocker and (not passed):
                 break

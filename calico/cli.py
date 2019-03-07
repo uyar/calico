@@ -103,7 +103,7 @@ def main(argv=None):
                 tests=arguments.tests, quiet=arguments.quiet, g_timeout=arguments.timeout
             )
             score = report["points"]
-            print(f"Grade: {score} / {runner.points}")
+            print("Grade: %(s)s / %(p)s" % {'s': score, 'p': runner.points})
     except Exception as e:
         print(e, file=sys.stderr)
         sys.exit(1)
