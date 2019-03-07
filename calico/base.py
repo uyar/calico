@@ -273,7 +273,7 @@ class Calico(OrderedDict):
             _logger.debug("starting test %s", test_name)
             if (not quiet) and test.visible:
                 dots = "." * (MAX_LEN - len(test_name) + 1)
-                print("%(t)s %(d)s{" % {"t": test_name, "d": dots}, end=" ")
+                print("%(t)s %(d)s" % {"t": test_name, "d": dots}, end=" ")
 
             jailed = SUPPORTS_JAIL and test_name.startswith("case_")
             report[test_name] = test.run(
