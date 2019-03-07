@@ -20,6 +20,7 @@ import os
 import sys
 from argparse import ArgumentParser
 
+from . import __version__
 from .parse import parse_spec
 
 
@@ -36,7 +37,7 @@ def make_parser(prog):
     :return: Created argument parser.
     """
     parser = ArgumentParser(prog=prog)
-    parser.add_argument("--version", action="version", version="%(prog)s 1.0")
+    parser.add_argument("--version", action="version", version="%(prog)s " + __version__)
 
     parser.add_argument("spec", help="test specifications file")
     parser.add_argument("-d", "--directory", help="change to directory before doing anything")
@@ -103,7 +104,7 @@ def main(argv=None):
                 tests=arguments.tests, quiet=arguments.quiet, g_timeout=arguments.timeout
             )
             score = report["points"]
-            print("Grade: %(s)s / %(p)s" % {'s': score, 'p': runner.points})
+            print("Grade: %(s)s / %(p)s" % {"s": score, "p": runner.points})
     except Exception as e:
         print(e, file=sys.stderr)
         sys.exit(1)

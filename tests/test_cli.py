@@ -20,10 +20,11 @@ def test_help_should_print_usage_and_exit(capsys):
 
 
 def test_cli_version_should_print_version_number_and_exit(capsys):
+    version = get_distribution("calico").version
     with raises(SystemExit):
         cli.main(argv=["calico", "--version"])
     out, err = capsys.readouterr()
-    assert "calico " + get_distribution("calico").version + "\n" in {out, err}
+    assert out == "calico %(ver)s\n" % {"ver": version}
 
 
 def test_no_spec_file_should_print_usage_and_exit(capsys):
