@@ -1,16 +1,12 @@
-Copyright (C) 2016-2018 H. Turgut Uyar <uyar@itu.edu.tr>
-
 Calico is a utility for checking command-line programs in terms of their
 input and output. It checks whether a program generates the correct output
 when given some inputs. It was developed to evaluate simple programming
 assignments in an introductory programming course.
 
-:PyPI: https://pypi.python.org/pypi/calico/
-:Repository: https://github.com/itublg/calico
-:Documentation: https://calico.readthedocs.io/
+Getting started
+---------------
 
-Calico has been tested with Python 3.4+ and Python 2.7. You can install
-the latest version from PyPI::
+You can install Calico using pip::
 
    pip install calico
 
@@ -20,3 +16,20 @@ is in `YAML`_ format.
 
 .. _pexpect: https://pexpect.readthedocs.io/
 .. _YAML: http://www.yaml.org/
+
+Getting help
+------------
+
+The online documentation is available on: https://calico.readthedocs.io/
+
+The source code can be obtained from: https://github.com/itublg/calico
+
+License
+-------
+
+Copyright (C) 2016-2019 H. Turgut Uyar <uyar@itu.edu.tr>
+
+See ``AUTHORS.rst`` for a list of all contributors.
+
+Calico is released under the GPL license, version 3 or later. Read
+the included ``LICENSE.txt`` for details.

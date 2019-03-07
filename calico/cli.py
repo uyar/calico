@@ -1,4 +1,4 @@
-# Copyright (C) 2016-2018 H. Turgut Uyar <uyar@itu.edu.tr>
+# Copyright (C) 2016-2019 H. Turgut Uyar <uyar@itu.edu.tr>
 #
 # Calico is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
