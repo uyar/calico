@@ -1,7 +1,7 @@
 Calico
 ======
 
-.. include:: ../README.rst
+.. include:: ../../README.rst
 
 Contents
 ========
