@@ -56,25 +56,22 @@ line-length = 96
 legacy_tox_ini = """
 [tox]
 envlist = py{37,36,35,34,27}, style, docs
-skipsdist = True
+isolated_build = True
 
 [testenv]
 whitelist_externals = poetry
-skip_install = true
 commands =
     poetry install -v
     poetry run {posargs:pytest}
 
 [testenv:style]
 whitelist_externals = poetry
-skip_install = true
 commands =
     poetry install -v
     poetry run {posargs:flake8} calico
 
 [testenv:docs]
 whitelist_externals = poetry
-skip_install = true
 changedir = docs/
 commands =
     poetry install -v
