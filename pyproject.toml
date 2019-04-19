@@ -61,12 +61,14 @@ isolated_build = True
 [testenv]
 whitelist_externals = poetry
 commands =
+    poetry run rm -rf pip-wheel-metadata
     poetry install -v
     poetry run {posargs:pytest}
 
 [testenv:style]
 whitelist_externals = poetry
 commands =
+    poetry run rm -rf pip-wheel-metadata
     poetry install -v
     poetry run {posargs:flake8} calico
 
@@ -74,6 +76,7 @@ commands =
 whitelist_externals = poetry
 changedir = docs/
 commands =
+    poetry run rm -rf ../pip-wheel-metadata
     poetry install -v
     poetry run sphinx-build -b html source/ build/
 """
