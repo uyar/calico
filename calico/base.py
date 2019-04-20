@@ -28,7 +28,7 @@ import pexpect
 from . import GLOBAL_TIMEOUT, SUPPORTS_JAIL
 
 
-PY2 = sys.version_info < (3,)  # sig: str
+PY2 = sys.version_info < (3,)  # sig: bool
 
 MAX_LEN = 40
 
