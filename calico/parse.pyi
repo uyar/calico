@@ -11,7 +11,7 @@ def get_comment_value(node: SpecNode, name: str, field: str) -> str: ...
 def get_attribute(
     node: SpecNode,
     test_name: str,
-    names: Tuple[str],
+    names: Tuple[str, str],
     val_func: Callable[[Any, ...], bool],
     val_args: Any,
     err_message: str,
