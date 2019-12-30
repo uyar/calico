@@ -131,7 +131,7 @@ def run_script(command, script, defs=None, g_timeout=None):
             process.sendline(action.data)
     else:
         process.close(force=True)
-    return process.exitstatus, errors
+    return process.exitstatus, process.signalstatus, errors
 
 
 class TestCase:
@@ -212,12 +212,15 @@ class TestCase:
         command = "%(j)s%(c)s" % {"j": jail_prefix, "c": self.command}
         _logger.debug("running command: %s", command)
 
-        exit_status, errors = run_script(
+        exit_status, signal_status, errors = run_script(
             self.command, self.script, defs=defs, g_timeout=g_timeout
         )
         report["errors"].extend(errors)
 
-        _logger.debug("exit status: %d (expected %d)", exit_status, self.exits)
+        if exit_status is not None:
+            _logger.debug("exit status: %d (expected %d)", exit_status, self.exits)
+        if signal_status is not None:
+            _logger.debug("program terminated with signal %d", signal_status)
         if exit_status != self.exits:
             report["errors"].append("Incorrect exit status.")
 

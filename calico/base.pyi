@@ -25,7 +25,7 @@ def run_script(
     script: List[Action],
     defs: Optional[Mapping] = ...,
     g_timeout: Optional[int] = ...,
-) -> Tuple[int, List[str]]: ...
+) -> Tuple[int, int, List[str]]: ...
 
 class TestCase:
     name = ...  # type: str
