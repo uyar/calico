@@ -8,7 +8,7 @@ authors = ["H. Turgut Uyar <uyar@itu.edu.tr>"]
 license = "GPL-3.0+"
 
 homepage = "https://github.com/itublg/calico"
-documentation = "https://gitlab.com/itublg/calico"
+documentation = "https://calico.readthedocs.io/"
 repository = "https://github.com/itublg/calico"
 
 keywords = ["testing", "i/o"]
@@ -28,7 +28,16 @@ classifiers = [
     "Topic :: Utilities",
 ]
 
-include = ["AUTHORS.rst", "HISTORY.rst", "Vagrantfile", "tests/**/*.py", "tests/**/*.c", "tests/**/*.yaml", "docs/source/**/*", "docs/Makefile"]
+include = [
+    "AUTHORS.rst",
+    "HISTORY.rst",
+    "Vagrantfile",
+    "tests/**/*.py",
+    "tests/**/*.c",
+    "tests/**/*.yaml",
+    "docs/source/**/*",
+    "docs/Makefile"
+]
 
 [tool.poetry.dependencies]
 python = "^3.4|^2.7"
