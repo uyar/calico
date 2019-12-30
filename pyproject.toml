@@ -68,26 +68,29 @@ envlist = py{37,36,35,34,27}, style, docs
 isolated_build = True
 
 [testenv]
-whitelist_externals = poetry
+deps =
+    pytest~=3.5
 commands =
-    poetry run rm -rf pip-wheel-metadata
-    poetry install -v
-    poetry run {posargs:pytest}
+    pytest {posargs:tests}
 
 [testenv:style]
-whitelist_externals = poetry
+basepython = python3.7
+deps =
+    flake8~=3.7
+    flake8-isort~=2.7
+    flake8-docstrings~=1.3
 commands =
-    poetry run rm -rf pip-wheel-metadata
-    poetry install -v
-    poetry run {posargs:flake8} calico
+    flake8 calico
 
 [testenv:docs]
-whitelist_externals = poetry
+basepython = python3.7
+deps =
+    sphinx~=2.2
+    sphinx_rtd_theme~=0.4
+    pygenstub~=1.4
 changedir = docs/
 commands =
-    poetry run rm -rf ../pip-wheel-metadata
-    poetry install -v
-    poetry run sphinx-build -b html source/ build/
+    sphinx-build -b html source/ build/html/
 """
 
 [build-system]
