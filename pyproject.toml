@@ -22,7 +22,6 @@ classifiers = [
     "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.6",
     "Programming Language :: Python :: 3.5",
-    "Programming Language :: Python :: 3.4",
     "Programming Language :: Python :: 2.7",
     "Topic :: Education :: Testing",
     "Topic :: Utilities",
@@ -40,7 +39,7 @@ include = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.4|^2.7"
+python = "^3.5|^2.7"
 pexpect = "^4.6"
 "ruamel.yaml" = "^0.15.41"
 enum34 = {version = "^1.1", python = "^2.7"}
@@ -64,7 +63,7 @@ line-length = 96
 [tool.tox]
 legacy_tox_ini = """
 [tox]
-envlist = py{37,36,35,34,27}, style, docs
+envlist = py{37,36,35,27}, style, docs
 isolated_build = True
 
 [testenv]
