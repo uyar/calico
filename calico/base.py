@@ -72,12 +72,12 @@ class Action:
 def run_script(command, script, defs=None, g_timeout=None):
     """Run a command and check whether it follows a script.
 
-    :sig: (str, List[Action], Optional[Mapping], Optional[int]) -> Tuple[int, List[str]]
+    :sig: (str, List[Action], Optional[Mapping], Optional[int]) -> Tuple[int, int, List[str]]
     :param command: Command to run.
     :param script: Script to check against.
     :param defs: Variable substitutions.
     :param g_timeout: Global timeout value for the spawn class
-    :return: Exit status and errors.
+    :return: Exit status, signal status, and errors.
     """
     defs = defs if defs is not None else {}
     g_timeout = g_timeout if g_timeout is not None else GLOBAL_TIMEOUT

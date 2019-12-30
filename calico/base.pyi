@@ -5,7 +5,7 @@ from typing import Any, List, Mapping, Optional, Tuple, Union
 from collections import OrderedDict
 from enum import Enum
 
-PY2 = ...  # type: str
+PY2 = ...  # type: bool
 
 
 class ActionType(Enum):
