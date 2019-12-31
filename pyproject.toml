@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "calico"
-version = "1.1.2"
+version = "1.2.0"
 description = "I/O checker for command line programs."
 readme = "README.rst"
 

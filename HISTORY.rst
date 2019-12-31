@@ -1,6 +1,11 @@
 History
 =======
 
+1.2.0 (2019-12-31)
+------------------
+
+- Fix handling of tested programs that exit on signals.
+
 1.1.2 (2019-03-07)
 ------------------
 
