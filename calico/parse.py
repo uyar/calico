@@ -57,8 +57,7 @@ def get_attribute(node, test_name, names, val_func, val_args, err_message):
     :param val_args: An argument to the validator function
     :param err_message: An error message to shown when validation fails
     """
-    _short, _long = names
-    attr = node.get(_long, node.get(_short))
+    attr = next(filter(lambda i: i is not None, map(node.get, names)), None)
     if attr is not None:
         if val_args is None:
             result = val_func(attr)
@@ -124,7 +123,7 @@ def parse_spec(content):
         (
             "exits",
             {
-                "names": ("x", "exit"),
+                "names": ("x", "exit", "return"),
                 "val_func": isinstance,
                 "val_args": int,
                 "err_message": "%s: Exit status value must be an integer",
