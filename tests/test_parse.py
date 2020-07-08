@@ -79,6 +79,16 @@ def test_case_default_exit_status_should_be_zerd():
     assert runner["c1"].exits == 0
 
 
+def test_case_return_keyword_should_be_ok_for_exit_status():
+    source = """
+          - c1:
+              run: "false"
+              return: 1
+        """
+    runner = parse_spec(source)
+    assert runner["c1"].exits == 1
+
+
 def test_case_integer_exit_status_should_be_ok():
     source = """
       - c1:

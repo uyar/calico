@@ -328,9 +328,14 @@ prompts- you can define variables in the special ``_define`` section:
 
 .. note::
 
+   Although not mentioned in the tutorial, you can also use the ``return``
+   keyword instead of ``exit``.
+
+.. note::
+
    To make the specification file shorter, you can use the following
    shortcuts for the keywords: ``r`` for ``run``, ``e`` for ``expect``,
-   ``s`` for ``send``, ``x`` for ``exit``, ``b`` for ``blocker``,
+   ``s`` for ``send``, ``x`` for ``exit`` or ``return``, ``b`` for ``blocker``,
    ``v`` for ``visible``, ``p`` for ``points``.
 
 Jailing tests
