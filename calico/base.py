@@ -64,7 +64,7 @@ class Action:
 
     def __iter__(self):
         """Get components of this action as a sequence."""
-        yield self.type_.value[0]
+        yield self.type_.value[1]
         yield self.data if self.data != pexpect.EOF else "_EOF_"
         yield self.timeout
 
