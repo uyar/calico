@@ -22,6 +22,7 @@ import os
 import sys
 from collections import OrderedDict
 from enum import Enum
+from json import dumps
 
 import pexpect
 
@@ -67,6 +68,14 @@ class Action:
         yield self.type_.value[1]
         yield self.data if self.data != pexpect.EOF else "_EOF_"
         yield self.timeout
+
+    def __str__(self):
+        """Get an str which produces this action when parsed."""
+        action_type, action_data, timeout = self
+        timeout = "" if timeout == -1 else f"# timeout: {timeout}"
+        if action_data != "_EOF_":
+            action_data = dumps(action_data)
+        return f"- {action_type}: {action_data} {timeout}\n"
 
 
 def run_script(command, script, defs=None, g_timeout=None):
@@ -192,6 +201,22 @@ class TestCase:
         """
         self.script.append(action)
 
+    def __str__(self):
+        """Get an str which produces this test case when parsed."""
+        script = "\n"
+        for action in self.script:
+            script += str(action)
+        script = textwrap.indent(script, " " * 16)
+
+        spec = f"""
+        - {self.name}:
+            run: {self.command}
+            script: {script}
+            return: {self.exits}
+            points: {self.points}
+        """
+        return textwrap.dedent(spec)
+
     def run(self, defs=None, jailed=False, g_timeout=None):
         """Run this test and produce a report.
 
@@ -254,6 +279,10 @@ class Calico(OrderedDict):
         else:
             super().__setitem__(case.name, case)
         self.points += case.points if case.points is not None else 0
+
+    def __str__(self):
+        """Get an str which produces this test suite when parsed."""
+        return "\n".join(str(test_case) for test_case in self.values())
 
     def run(self, tests=None, quiet=False, g_timeout=None):
         """Run this test suite.
