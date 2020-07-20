@@ -19,10 +19,16 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import logging
 import os
+import pty
 import sys
+import textwrap
+import termios
+import tty
 from collections import OrderedDict
 from enum import Enum
+from itertools import count
 from json import dumps
+from re import escape
 
 import pexpect
 
@@ -328,3 +334,82 @@ class Calico(OrderedDict):
 
         report["points"] = earned_points
         return report
+
+
+class Clioc:
+    """A class that is able to generate test specifications from a reference program's runs."""
+
+    def __init__(self, argv):
+        """Initialize this test specification generator.
+
+        :sig: (List[str]) -> None
+        :param argv: List of command line arguments to run the reference program.
+        """
+        self.argv = argv
+        """"""
+        self.__current_test_case = None
+
+    def generate_test_spec(self):
+        """
+        Run the reference program and return the generated test specification.
+
+        :sig: () -> str
+        :return: The specification that is generated from reference program's run.
+        """
+        test_suite = self.__create_test_suite()
+        return str(test_suite)
+
+    def __create_test_suite(self):
+        calico = Calico()
+        case_number = count(1)
+        while True:
+            os.system("clear")
+            calico.add_case(self.__create_test_case(next(case_number)))
+            if input("Do you want to continue? [Y/n] ").lower() not in ("y", ""):
+                print("Abort.")
+                break
+        return calico
+
+    def __create_test_case(self, case_num):
+        case_name = f"case_{case_num}"
+        print(f"Running for {case_name}...")
+        self.__current_test_case = TestCase(case_name, " ".join(self.argv), None)
+        exit_code = self.__spawn()
+        self.__current_test_case.add_action(Action(ActionType.EXPECT, "_EOF_"))
+        print(f"{case_name} ended")
+        points = int(input("Assign points for this run: "))
+        self.__current_test_case.points = points
+        self.__current_test_case.exits = exit_code
+        return self.__current_test_case
+
+    def __spawn(self):
+        pid, master_fd = pty.fork()
+        if pid == pty.CHILD:
+            os.execlp(self.argv[0], *self.argv)
+        try:
+            mode = tty.tcgetattr(pty.STDIN_FILENO)
+            tty.setraw(master_fd, termios.TCSANOW)
+        except tty.error:
+            restore = False
+        else:
+            restore = True
+
+        try:
+            pty._copy(master_fd, self.__read_write_handler, self.__read_write_handler)
+        except OSError:
+            if restore:
+                tty.tcsetattr(pty.STDIN_FILENO, tty.TCSAFLUSH, mode)
+
+        os.close(master_fd)
+        return os.waitpid(pid, 0)[1] >> 8
+
+    def __read_write_handler(self, fd):
+        data = os.read(fd, 1024).decode("utf8")
+        if fd == 0:  # read from stdin
+            action = Action(ActionType.SEND, data[:-1])  # omit the end line character
+            self.__current_test_case.add_action(action)
+        else:  # write to stdout
+            for line in data.splitlines(keepends=True):
+                action = Action(ActionType.EXPECT, escape(line).replace("\n", "\r\n"))  # escape metacharacters
+                self.__current_test_case.add_action(action)
+        return data.encode("utf8")
