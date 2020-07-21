@@ -410,6 +410,7 @@ class Clioc:
             self.__current_test_case.add_action(action)
         else:  # write to stdout
             for line in data.splitlines(keepends=True):
-                action = Action(ActionType.EXPECT, escape(line).replace("\n", "\r\n"))  # escape metacharacters
+                line = escape(line).replace("\\ ", " ").replace("\n", "\r\n")  # escape metacharacters, reformat string
+                action = Action(ActionType.EXPECT, line) 
                 self.__current_test_case.add_action(action)
         return data.encode("utf8")
