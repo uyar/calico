@@ -21,10 +21,9 @@ import logging
 import os
 import sys
 from argparse import ArgumentParser
-
 from calico import __version__
 from calico.parse import parse_spec
-
+from calico.base import Clioc
 
 _logger = logging.getLogger("calico")
 
@@ -40,7 +39,9 @@ def make_parser(prog):
     """
     parser = ArgumentParser(prog=prog)
     parser.add_argument("--version", action="version", version="%(prog)s " + __version__)
-
+    parser.add_argument(
+        "-g", "--generate-test-file", nargs="+",
+        help="generate a test file from run(s)")
     parser.add_argument("spec", help="test specifications file")
     parser.add_argument("-d", "--directory", help="change to directory before doing anything")
     parser.add_argument(
@@ -91,6 +92,11 @@ def main(argv=None):
     arguments = parser.parse_args(argv[1:])
     try:
         spec_filename = os.path.abspath(arguments.spec)
+        if arguments.generate_test_file:
+            test_suite_generator = Clioc(arguments.generate_test_file)
+            with open(spec_filename, "w") as f:
+                f.write(test_suite_generator.generate_test_spec())
+            print("A test file named '%s' has been generated." % arguments.spec)
         with open(spec_filename) as f:
             content = f.read()
 

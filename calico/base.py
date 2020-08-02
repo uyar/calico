@@ -19,9 +19,16 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 import logging
 import os
+import pty
 import sys
+import textwrap
+import termios
+import tty
 from collections import OrderedDict
 from enum import Enum
+from itertools import count
+from json import dumps
+from re import escape
 
 import pexpect
 
@@ -64,9 +71,17 @@ class Action:
 
     def __iter__(self):
         """Get components of this action as a sequence."""
-        yield self.type_.value[0]
+        yield self.type_.value[1]
         yield self.data if self.data != pexpect.EOF else "_EOF_"
         yield self.timeout
+
+    def __str__(self):
+        """Get an str which produces this action when parsed."""
+        action_type, action_data, timeout = self
+        timeout = "" if timeout == -1 else f"# timeout: {timeout}"
+        if action_data != "_EOF_":
+            action_data = dumps(action_data)
+        return f"- {action_type}: {action_data} {timeout}\n"
 
 
 def run_script(command, script, defs=None, g_timeout=None):
@@ -192,6 +207,22 @@ class TestCase:
         """
         self.script.append(action)
 
+    def __str__(self):
+        """Get an str which produces this test case when parsed."""
+        script = "\n"
+        for action in self.script:
+            script += str(action)
+        script = textwrap.indent(script, " " * 16)
+
+        spec = f"""
+        - {self.name}:
+            run: {self.command}
+            script: {script}
+            return: {self.exits}
+            points: {self.points}
+        """
+        return textwrap.dedent(spec)
+
     def run(self, defs=None, jailed=False, g_timeout=None):
         """Run this test and produce a report.
 
@@ -255,6 +286,10 @@ class Calico(OrderedDict):
             super().__setitem__(case.name, case)
         self.points += case.points if case.points is not None else 0
 
+    def __str__(self):
+        """Get an str which produces this test suite when parsed."""
+        return "\n".join(str(test_case) for test_case in self.values())
+
     def run(self, tests=None, quiet=False, g_timeout=None):
         """Run this test suite.
 
@@ -299,3 +334,78 @@ class Calico(OrderedDict):
 
         report["points"] = earned_points
         return report
+
+
+class Clioc:
+    """A class that is able to generate test specifications from a reference program's runs."""
+
+    def __init__(self, argv):
+        """Initialize this test specification generator.
+
+        :sig: (List[str]) -> None
+        :param argv: List of command line arguments to run the reference program.
+        """
+        self.argv = argv
+        """"""
+        self.__current_test_case = None
+
+    def generate_test_spec(self):
+        """
+        Run the reference program and return the generated test specification.
+
+        :sig: () -> str
+        :return: The specification that is generated from reference program's run.
+        """
+        test_suite = self.__create_test_suite()
+        return str(test_suite)
+
+    def __create_test_suite(self):
+        calico = Calico()
+        case_number = count(1)
+        while True:
+            os.system("clear")
+            calico.add_case(self.__create_test_case(next(case_number)))
+            if input("Do you want to continue? [Y/n] ").lower() not in ("y", ""):
+                print("Abort.")
+                break
+        return calico
+
+    def __create_test_case(self, case_num):
+        case_name = f"case_{case_num}"
+        print(f"Running for {case_name}...")
+        self.__current_test_case = TestCase(case_name, " ".join(self.argv), None)
+        exit_code = self.__spawn()
+        self.__current_test_case.add_action(Action(ActionType.EXPECT, "_EOF_"))
+        print(f"{case_name} ended")
+        points = int(input("Assign points for this run: "))
+        self.__current_test_case.points = points
+        self.__current_test_case.exits = exit_code
+        return self.__current_test_case
+
+    def __spawn(self):
+        # see https://github.com/itublg/calico/pull/13#discussion_r464052578
+        pid, master_fd = pty.fork()
+        if pid == pty.CHILD:
+            os.execlp(self.argv[0], *self.argv)
+
+        mode = tty.tcgetattr(master_fd)
+        mode[3] &= ~termios.ECHO # 3 corresponds to lflag, disable echoing
+        tty.tcsetattr(master_fd, termios.TCSANOW, mode)
+        try:
+            pty._copy(master_fd, self.__read_write_handler, self.__read_write_handler)
+        except OSError:
+            pass
+        os.close(master_fd)
+        return os.waitpid(pid, 0)[1] >> 8
+
+    def __read_write_handler(self, fd):
+        data = os.read(fd, 1024).decode("utf8")
+        if fd == 0:  # read from stdin
+            action = Action(ActionType.SEND, data[:-1])  # omit the end line character
+            self.__current_test_case.add_action(action)
+        else:  # write to stdout
+            for line in data.splitlines(keepends=True):
+                line = escape(line).replace("\\ ", " ")  # escape metacharacters, reformat string
+                action = Action(ActionType.EXPECT, line) 
+                self.__current_test_case.add_action(action)
+        return data.encode("utf8")
