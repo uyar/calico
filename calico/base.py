@@ -383,23 +383,18 @@ class Clioc:
         return self.__current_test_case
 
     def __spawn(self):
+        # see https://github.com/itublg/calico/pull/13#discussion_r464052578
         pid, master_fd = pty.fork()
         if pid == pty.CHILD:
             os.execlp(self.argv[0], *self.argv)
-        try:
-            mode = tty.tcgetattr(pty.STDIN_FILENO)
-            tty.setraw(master_fd, termios.TCSANOW)
-        except tty.error:
-            restore = False
-        else:
-            restore = True
 
+        mode = tty.tcgetattr(master_fd)
+        mode[3] &= ~termios.ECHO # 3 corresponds to lflag, disable echoing
+        tty.tcsetattr(master_fd, termios.TCSANOW, mode)
         try:
             pty._copy(master_fd, self.__read_write_handler, self.__read_write_handler)
         except OSError:
-            if restore:
-                tty.tcsetattr(pty.STDIN_FILENO, tty.TCSAFLUSH, mode)
-
+            pass
         os.close(master_fd)
         return os.waitpid(pid, 0)[1] >> 8
 
@@ -410,7 +405,7 @@ class Clioc:
             self.__current_test_case.add_action(action)
         else:  # write to stdout
             for line in data.splitlines(keepends=True):
-                line = escape(line).replace("\\ ", " ").replace("\n", "\r\n")  # escape metacharacters, reformat string
+                line = escape(line).replace("\\ ", " ")  # escape metacharacters, reformat string
                 action = Action(ActionType.EXPECT, line) 
                 self.__current_test_case.add_action(action)
         return data.encode("utf8")
