@@ -18,7 +18,7 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 from ruamel import yaml
-from ruamel.yaml import comments
+from ruamel.yaml import comments, YAML
 
 from .base import Action, ActionType, Calico, TestCase
 
@@ -77,7 +77,7 @@ def parse_spec(content):
     :raise AssertionError: When given specification is invalid.
     """
     try:
-        spec = yaml.round_trip_load(content)
+        spec = YAML(typ='safe').load(content)
     except yaml.YAMLError as e:
         raise AssertionError(str(e))
 
